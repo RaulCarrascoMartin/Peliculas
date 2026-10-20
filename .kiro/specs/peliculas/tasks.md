@@ -27,7 +27,7 @@
   - [x] 4.1 Entidad anémica `Pelicula` y `PeliculaRepository`
   - [x] 4.2 `PeliculaService`: alta, edición, baja y detalle, con error 404 si no existe
   - [x] 4.3 `PeliculaRequest` (con validaciones), `PeliculaResponse` y `PeliculaController`, con creación, edición y baja solo para administrador
-  - [ ] 4.4 `PeliculaApi` con `existe(id)` y actualización de la valoración media
+  - [x] 4.4 `PeliculaApi` con `existe(id)` y actualización de la valoración media
   - [ ] 4.5 Pruebas unitarias del servicio e integración del controlador
   - _Requisitos: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.2_
 

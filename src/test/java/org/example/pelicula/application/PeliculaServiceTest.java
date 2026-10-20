@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,5 +87,29 @@ class PeliculaServiceTest {
     @Test
     void eliminarUnaPeliculaInexistenteLanza404() {
         assertThrows(RecursoNoEncontradoException.class, () -> servicio.eliminar(99L));
+    }
+
+    @Test
+    void existeDevuelveTrueSoloParaPeliculasCreadas() {
+        var id = servicio.crear(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).getId();
+
+        assertTrue(servicio.existe(id));
+        assertFalse(servicio.existe(99L));
+    }
+
+    @Test
+    void actualizaLaValoracionMediaSinTocarElResto() {
+        var id = servicio.crear(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).getId();
+
+        servicio.actualizarValoracionMedia(id, 3.5);
+
+        var guardada = repositorio.findById(id).orElseThrow();
+        assertEquals(3.5, guardada.getValoracionMedia());
+        assertEquals("Alien", guardada.getTitulo());
+    }
+
+    @Test
+    void actualizarLaValoracionMediaDeUnaPeliculaInexistenteLanza404() {
+        assertThrows(RecursoNoEncontradoException.class, () -> servicio.actualizarValoracionMedia(99L, 3.5));
     }
 }

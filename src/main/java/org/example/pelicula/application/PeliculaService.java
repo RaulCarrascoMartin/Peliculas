@@ -1,12 +1,13 @@
 package org.example.pelicula.application;
 
 import org.example.compartido.RecursoNoEncontradoException;
+import org.example.pelicula.PeliculaApi;
 import org.example.pelicula.domain.Pelicula;
 import org.example.pelicula.domain.PeliculaRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PeliculaService {
+public class PeliculaService implements PeliculaApi {
 
     private final PeliculaRepository peliculas;
 
@@ -37,6 +38,18 @@ public class PeliculaService {
             throw noEncontrada(id);
         }
         peliculas.deleteById(id);
+    }
+
+    @Override
+    public boolean existe(Long id) {
+        return peliculas.existsById(id);
+    }
+
+    @Override
+    public void actualizarValoracionMedia(Long id, Double media) {
+        Pelicula pelicula = detalle(id);
+        pelicula.setValoracionMedia(media);
+        peliculas.save(pelicula);
     }
 
     private static RecursoNoEncontradoException noEncontrada(Long id) {
