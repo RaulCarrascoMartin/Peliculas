@@ -192,4 +192,21 @@ class PeliculaControllerIntegracionTest {
     private static String conAnio(int anio) {
         return "{\"titulo\":\"Alien\",\"anio\":" + anio + ",\"genero\":\"Drama\",\"director\":\"X\"}";
     }
+
+    @Test
+    void elListadoEsPublicoYPaginado() throws Exception {
+        for (int i = 0; i < 3; i++) {
+            crearComoAdmin(ALIEN);
+        }
+
+        mvc.perform(get("/api/peliculas").param("size", "2").param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].titulo").value("Alien"))
+                .andExpect(jsonPath("$.content[0].valoracionMedia").isEmpty());
+
+        mvc.perform(get("/api/peliculas").param("size", "2"))
+                .andExpect(jsonPath("$.page.size").value(2))
+                .andExpect(jsonPath("$.page.totalElements").isNumber());
+    }
 }

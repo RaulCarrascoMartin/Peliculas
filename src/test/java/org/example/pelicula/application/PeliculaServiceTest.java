@@ -4,6 +4,7 @@ import org.example.compartido.RecursoNoEncontradoException;
 import org.example.pelicula.domain.Pelicula;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -111,5 +112,24 @@ class PeliculaServiceTest {
     @Test
     void actualizarLaValoracionMediaDeUnaPeliculaInexistenteLanza404() {
         assertThrows(RecursoNoEncontradoException.class, () -> servicio.actualizarValoracionMedia(99L, 3.5));
+    }
+
+    @Test
+    void listaLasPeliculasPaginadas() {
+        for (int i = 1; i <= 5; i++) {
+            servicio.crear(pelicula("Película " + i, 2000 + i, "Drama", "Director"));
+        }
+
+        var pagina = servicio.listar(PageRequest.of(1, 2));
+
+        assertEquals(5, pagina.getTotalElements());
+        assertEquals(3, pagina.getTotalPages());
+        assertEquals(2, pagina.getContent().size());
+        assertEquals("Película 3", pagina.getContent().get(0).getTitulo());
+    }
+
+    @Test
+    void listarSinPeliculasDevuelveUnaPaginaVacia() {
+        assertTrue(servicio.listar(PageRequest.of(0, 10)).isEmpty());
     }
 }

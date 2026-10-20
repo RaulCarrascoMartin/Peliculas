@@ -2,6 +2,9 @@ package org.example.pelicula.web;
 
 import jakarta.validation.Valid;
 import org.example.pelicula.application.PeliculaService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,6 +27,11 @@ public class PeliculaController {
 
     public PeliculaController(PeliculaService servicio) {
         this.servicio = servicio;
+    }
+
+    @GetMapping
+    public PagedModel<PeliculaResponse> listar(@PageableDefault(sort = "id") Pageable paginacion) {
+        return new PagedModel<>(servicio.listar(paginacion).map(PeliculaResponse::desde));
     }
 
     @GetMapping("/{id}")

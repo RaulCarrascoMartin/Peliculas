@@ -4,6 +4,8 @@ import org.example.compartido.RecursoNoEncontradoException;
 import org.example.pelicula.PeliculaApi;
 import org.example.pelicula.domain.Pelicula;
 import org.example.pelicula.domain.PeliculaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +23,10 @@ public class PeliculaService implements PeliculaApi {
 
     public Pelicula detalle(Long id) {
         return peliculas.findById(id).orElseThrow(() -> noEncontrada(id));
+    }
+
+    public Page<Pelicula> listar(Pageable paginacion) {
+        return peliculas.findAll(paginacion);
     }
 
     /** Sustituye título, año, género y director; la valoración media no se edita a mano. */

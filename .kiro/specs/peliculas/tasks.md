@@ -32,7 +32,7 @@
   - _Requisitos: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.2_
 
 - [ ] 5. Módulo `pelicula`: consulta, búsqueda y filtros
-  - [ ] 5.1 Listado paginado
+  - [x] 5.1 Listado paginado
   - [ ] 5.2 Búsqueda por título sin distinguir mayúsculas y filtros por género, año y director combinables
   - [ ] 5.3 Lista vacía cuando no hay resultados
   - [ ] 5.4 Pruebas del servicio y del controlador
@@ -68,3 +68,4 @@
 - Dobles de repositorio: extender `RepositorioEnMemoria<T>` (src/test/.../compartido) y añadir solo las consultas derivadas necesarias.
 - Controladores: no usar `@Validated` a nivel de clase (rompe el 400 de `HandlerMethodValidationException`).
 - 3.4: `JwtFilter` se instancia dentro de `SecurityConfig` y no es bean (así Boot no lo registra dos veces). Rutas públicas: POST registro/login y GET `/api/peliculas` y `/api/peliculas/*`; cualquier ruta nueva pública hay que añadirla ahí. `SeguridadIntegracionTest` ya cubre sin token, caducado, firma alterada, otro secreto y rol insuficiente (adelanta parte de 3.6).
+- 5.1: el listado devuelve `PagedModel` (`content` + `page`), orden por defecto por id; el doble `PeliculaRepositoryFalso` implementa `findAll(Pageable)`.
