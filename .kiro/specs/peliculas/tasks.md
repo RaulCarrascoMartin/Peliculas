@@ -10,7 +10,7 @@
 - [ ] 2. Infraestructura común (`compartido`)
   - [x] 2.1 Crear las excepciones de negocio (`RecursoNoEncontradoException`, `ConflictoException`)
   - [x] 2.2 Implementar `GlobalExceptionHandler` con el cuerpo de error uniforme y la tabla de estados 400/401/403/404/409
-  - [ ] 2.3 Implementar `UsuarioActual` sobre `SecurityContextHolder`, con su doble de prueba escrito a mano
+  - [x] 2.3 Implementar `UsuarioActual` sobre `SecurityContextHolder`, con su doble de prueba escrito a mano
   - [ ] 2.4 Pruebas del manejo de errores
   - _Requisitos: 0.4, 0.5, 1.5, 1.6_
 
