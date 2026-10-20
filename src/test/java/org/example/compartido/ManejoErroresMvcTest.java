@@ -1,6 +1,7 @@
 package org.example.compartido;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,6 +47,15 @@ class ManejoErroresMvcTest {
         @GetMapping("/credenciales")
         void credenciales() {
             throw new BadCredentialsException("la contraseña no coincide para a@b.c");
+        }
+
+        @GetMapping("/pagina")
+        void pagina(@RequestParam @Min(0) int numero) {
+        }
+
+        @GetMapping("/inesperado")
+        void inesperado() {
+            throw new IllegalStateException("detalle interno que no debe filtrarse");
         }
 
         @GetMapping("/prohibido")
@@ -110,5 +121,38 @@ class ManejoErroresMvcTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.estado").value(403))
                 .andExpect(jsonPath("$.mensaje").value("Acceso denegado"));
+    }
+
+    @Test
+    void jsonMalFormadoDevuelve400Uniforme() throws Exception {
+        mvc.perform(post("/validacion").contentType(MediaType.APPLICATION_JSON).content("{titulo"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.estado").value(400))
+                .andExpect(jsonPath("$.mensaje").isNotEmpty())
+                .andExpect(jsonPath("$.errores").isEmpty());
+    }
+
+    @Test
+    void validacionDeParametrosDevuelve400ConErroresPorCampo() throws Exception {
+        mvc.perform(get("/pagina").param("numero", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.estado").value(400))
+                .andExpect(jsonPath("$.errores.numero").isNotEmpty());
+    }
+
+    @Test
+    void metodoNoPermitidoDevuelve405Uniforme() throws Exception {
+        mvc.perform(post("/conflicto"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.estado").value(405))
+                .andExpect(jsonPath("$.mensaje").isNotEmpty());
+    }
+
+    @Test
+    void errorInesperadoDevuelve500SinFiltrarDetalles() throws Exception {
+        mvc.perform(get("/inesperado"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.estado").value(500))
+                .andExpect(jsonPath("$.mensaje").value("Error interno del servidor"));
     }
 }

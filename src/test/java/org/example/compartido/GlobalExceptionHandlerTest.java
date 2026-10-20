@@ -68,5 +68,6 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.FORBIDDEN, respuesta.getStatusCode());
         assertEquals(403, respuesta.getBody().estado());
+        assertEquals("Acceso denegado", respuesta.getBody().mensaje());
     }
 }
