@@ -2,6 +2,7 @@ package org.example.compartido;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +62,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorRespuesta> cuerpoNoLegible(HttpMessageNotReadableException ex) {
         return respuesta(HttpStatus.BAD_REQUEST, "Cuerpo de la petición no válido", Map.of());
+    }
+
+    @ExceptionHandler(TypeMismatchException.class)
+    public ResponseEntity<ErrorRespuesta> tipoNoValido(TypeMismatchException ex) {
+        return respuesta(HttpStatus.BAD_REQUEST, "Parámetro con formato no válido", Map.of());
     }
 
     @ExceptionHandler(AuthenticationException.class)
