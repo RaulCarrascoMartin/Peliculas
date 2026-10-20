@@ -15,7 +15,7 @@
   - _Requisitos: 0.4, 0.5, 1.5, 1.6_
 
 - [ ] 3. Módulo `autenticacion`
-  - [ ] 3.1 Entidad anémica `Usuario` y `UsuarioRepository`
+  - [x] 3.1 Entidad anémica `Usuario` y `UsuarioRepository`
   - [ ] 3.2 `AutenticacionService`: registro con BCrypt, rechazo de email duplicado, login y emisión del JWT
   - [ ] 3.3 `RegistroRequest`, `LoginRequest`, `TokenResponse` y `AutenticacionController`
   - [ ] 3.4 `JwtFilter` y `SecurityConfig` (sin sesión, rutas públicas y protegidas, `@PreAuthorize` por rol)
