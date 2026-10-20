@@ -162,4 +162,34 @@ class PeliculaControllerIntegracionTest {
         enviar(put("/api/peliculas/1"), null, ALIENS).andExpect(status().isUnauthorized());
         enviar(delete("/api/peliculas/1"), null, null).andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void validaLosLimitesDelAnio() throws Exception {
+        enviar(post("/api/peliculas"), admin(), conAnio(1887)).andExpect(status().isBadRequest());
+        enviar(post("/api/peliculas"), admin(), conAnio(2101)).andExpect(status().isBadRequest());
+        enviar(post("/api/peliculas"), admin(), conAnio(1888)).andExpect(status().isCreated());
+        enviar(post("/api/peliculas"), admin(), conAnio(2100)).andExpect(status().isCreated());
+    }
+
+    @Test
+    void sinAnioDevuelve400() throws Exception {
+        enviar(post("/api/peliculas"), admin(), "{\"titulo\":\"Alien\",\"genero\":\"Drama\",\"director\":\"X\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.anio").isNotEmpty());
+    }
+
+    @Test
+    void unaEdicionInvalidaNoModificaLaPelicula() throws Exception {
+        long id = crearComoAdmin(ALIEN);
+
+        enviar(put("/api/peliculas/" + id), admin(), conAnio(5)).andExpect(status().isBadRequest());
+
+        mvc.perform(get("/api/peliculas/" + id))
+                .andExpect(jsonPath("$.titulo").value("Alien"))
+                .andExpect(jsonPath("$.anio").value(1979));
+    }
+
+    private static String conAnio(int anio) {
+        return "{\"titulo\":\"Alien\",\"anio\":" + anio + ",\"genero\":\"Drama\",\"director\":\"X\"}";
+    }
 }
