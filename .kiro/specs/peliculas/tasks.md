@@ -24,7 +24,7 @@
   - _Requisitos: 0.1, 0.2, 0.3, 0.4, 0.5_
 
 - [ ] 4. Módulo `pelicula`: catálogo
-  - [ ] 4.1 Entidad anémica `Pelicula` y `PeliculaRepository`
+  - [x] 4.1 Entidad anémica `Pelicula` y `PeliculaRepository`
   - [ ] 4.2 `PeliculaService`: alta, edición, baja y detalle, con error 404 si no existe
   - [ ] 4.3 `PeliculaRequest` (con validaciones), `PeliculaResponse` y `PeliculaController`, con creación, edición y baja solo para administrador
   - [ ] 4.4 `PeliculaApi` con `existe(id)` y actualización de la valoración media
