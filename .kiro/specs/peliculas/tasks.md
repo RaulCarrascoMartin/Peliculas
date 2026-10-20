@@ -18,7 +18,7 @@
   - [x] 3.1 Entidad anémica `Usuario` y `UsuarioRepository`
   - [x] 3.2 `AutenticacionService`: registro con BCrypt, rechazo de email duplicado, login y emisión del JWT
   - [x] 3.3 `RegistroRequest`, `LoginRequest`, `TokenResponse` y `AutenticacionController`
-  - [ ] 3.4 `JwtFilter` y `SecurityConfig` (sin sesión, rutas públicas y protegidas, `@PreAuthorize` por rol)
+  - [x] 3.4 `JwtFilter` y `SecurityConfig` (sin sesión, rutas públicas y protegidas, `@PreAuthorize` por rol)
   - [ ] 3.5 Crear el primer administrador al arrancar a partir de la configuración
   - [ ] 3.6 Pruebas unitarias del servicio y de integración de seguridad (sin token, caducado, firma alterada, rol insuficiente)
   - _Requisitos: 0.1, 0.2, 0.3, 0.4, 0.5_
@@ -64,6 +64,7 @@
   - [ ] 9.2 Ejecutar `mvn test` completo, incluidas las pruebas de ArchUnit
 
 ## Implementation Notes
-- 3.2: `JwtTokens` (emitir/leer, en `compartido`) lo reutiliza `JwtFilter` en 3.4; `AutenticacionService` necesita un bean `PasswordEncoder` (BCrypt) que debe definir `SecurityConfig` en 3.4, o la aplicación no arranca.
+- 3.2: `JwtTokens` (emitir/leer, en `compartido`) lo reutiliza `JwtFilter` en 3.4; `AutenticacionService` necesita un bean `PasswordEncoder` (BCrypt) (ya definido en `SecurityConfig`).
 - Dobles de repositorio: extender `RepositorioEnMemoria<T>` (src/test/.../compartido) y añadir solo las consultas derivadas necesarias.
 - Controladores: no usar `@Validated` a nivel de clase (rompe el 400 de `HandlerMethodValidationException`).
+- 3.4: `JwtFilter` se instancia dentro de `SecurityConfig` y no es bean (así Boot no lo registra dos veces). Rutas públicas: POST registro/login y GET `/api/peliculas` y `/api/peliculas/*`; cualquier ruta nueva pública hay que añadirla ahí. `SeguridadIntegracionTest` ya cubre sin token, caducado, firma alterada, otro secreto y rol insuficiente (adelanta parte de 3.6).
