@@ -25,7 +25,7 @@
 
 - [ ] 4. Módulo `pelicula`: catálogo
   - [x] 4.1 Entidad anémica `Pelicula` y `PeliculaRepository`
-  - [ ] 4.2 `PeliculaService`: alta, edición, baja y detalle, con error 404 si no existe
+  - [x] 4.2 `PeliculaService`: alta, edición, baja y detalle, con error 404 si no existe
   - [ ] 4.3 `PeliculaRequest` (con validaciones), `PeliculaResponse` y `PeliculaController`, con creación, edición y baja solo para administrador
   - [ ] 4.4 `PeliculaApi` con `existe(id)` y actualización de la valoración media
   - [ ] 4.5 Pruebas unitarias del servicio e integración del controlador
