@@ -6,7 +6,7 @@ import org.example.compartido.RepositorioEnMemoria;
 
 import java.util.Optional;
 
-class UsuarioRepositoryFalso extends RepositorioEnMemoria<Usuario> implements UsuarioRepository {
+public class UsuarioRepositoryFalso extends RepositorioEnMemoria<Usuario> implements UsuarioRepository {
 
     @Override
     protected Long idDe(Usuario usuario) {
