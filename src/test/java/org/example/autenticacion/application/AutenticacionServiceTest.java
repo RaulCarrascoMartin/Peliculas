@@ -77,4 +77,32 @@ class AutenticacionServiceTest {
 
         assertEquals(contrasenaMala.getMessage(), emailMalo.getMessage());
     }
+
+    @Test
+    void creaElAdministradorInicialConRolAdminYContrasenaCifrada() {
+        servicio.crearAdministradorSiNoExiste("root@correo.com", "Secreta123");
+
+        var admin = repositorio.findByEmail("root@correo.com").orElseThrow();
+        assertEquals(Rol.ADMIN, admin.getRol());
+        assertTrue(codificador.matches("Secreta123", admin.getContrasena()));
+    }
+
+    @Test
+    void crearElAdministradorDosVecesNoDuplicaNiCambiaLaContrasena() {
+        servicio.crearAdministradorSiNoExiste("root@correo.com", "Secreta123");
+        servicio.crearAdministradorSiNoExiste("root@correo.com", "Distinta456");
+
+        assertEquals(1, repositorio.count());
+        var admin = repositorio.findByEmail("root@correo.com").orElseThrow();
+        assertTrue(codificador.matches("Secreta123", admin.getContrasena()));
+    }
+
+    @Test
+    void noPromueveAUnUsuarioYaRegistradoConEseEmail() {
+        servicio.registrar("ana@correo.com", "Secreta123");
+
+        servicio.crearAdministradorSiNoExiste("ana@correo.com", "Distinta456");
+
+        assertEquals(Rol.USUARIO, repositorio.findByEmail("ana@correo.com").orElseThrow().getRol());
+    }
 }

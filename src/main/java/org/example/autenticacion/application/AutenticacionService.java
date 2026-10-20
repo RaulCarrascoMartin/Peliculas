@@ -35,6 +35,18 @@ public class AutenticacionService {
         return usuarios.save(usuario);
     }
 
+    /** Crea un administrador si no hay ya un usuario con ese email; nunca modifica uno existente. */
+    public void crearAdministradorSiNoExiste(String email, String contrasena) {
+        if (usuarios.existsByEmail(email)) {
+            return;
+        }
+        Usuario admin = new Usuario();
+        admin.setEmail(email);
+        admin.setContrasena(codificador.encode(contrasena));
+        admin.setRol(Rol.ADMIN);
+        usuarios.save(admin);
+    }
+
     /** Devuelve el JWT del usuario; el mismo error sirve para email inexistente y contraseña errónea. */
     public String login(String email, String contrasena) {
         Usuario usuario = usuarios.findByEmail(email)
