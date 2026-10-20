@@ -20,7 +20,7 @@
   - [x] 3.3 `RegistroRequest`, `LoginRequest`, `TokenResponse` y `AutenticacionController`
   - [x] 3.4 `JwtFilter` y `SecurityConfig` (sin sesión, rutas públicas y protegidas, `@PreAuthorize` por rol)
   - [x] 3.5 Crear el primer administrador al arrancar a partir de la configuración
-  - [ ] 3.6 Pruebas unitarias del servicio y de integración de seguridad (sin token, caducado, firma alterada, rol insuficiente)
+  - [x] 3.6 Pruebas unitarias del servicio y de integración de seguridad (sin token, caducado, firma alterada, rol insuficiente)
   - _Requisitos: 0.1, 0.2, 0.3, 0.4, 0.5_
 
 - [ ] 4. Módulo `pelicula`: catálogo

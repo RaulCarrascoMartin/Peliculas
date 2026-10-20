@@ -133,4 +133,30 @@ class SeguridadIntegracionTest {
         mvc.perform(get("/api/protegido").header("Authorization", bearer(token)))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void tokenQueNoEsUnJwtDevuelve401() throws Exception {
+        mvc.perform(get("/api/protegido").header("Authorization", bearer("esto-no-es-un-jwt")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.estado").value(401));
+    }
+
+    @Test
+    void registroDuplicadoDevuelve409ConLaSeguridadReal() throws Exception {
+        String credenciales = "{\"email\":\"duplicado@correo.com\",\"contrasena\":\"Secreta123\"}";
+        mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON).content(credenciales))
+                .andExpect(status().isCreated());
+
+        mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON).content(credenciales))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.estado").value(409));
+    }
+
+    @Test
+    void loginIncorrectoDevuelve401SinIndicarQueCampoFallo() throws Exception {
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"nadie@correo.com\",\"contrasena\":\"Secreta123\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.mensaje").value("Credenciales incorrectas"));
+    }
 }
