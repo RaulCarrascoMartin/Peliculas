@@ -117,4 +117,24 @@ class MarcaPeliculaControllerIntegracionTest {
         mvc.perform(get("/api/usuarios/me/favoritas")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/usuarios/me/vistas")).andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void desmarcarSinMarcaPreviaDevuelve204() throws Exception {
+        long id = crearPelicula("Marca Cuatro");
+
+        desmarcar("favorita", id, 205).andExpect(status().isNoContent());
+        lista("favoritas", 205).andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void unaPeliculaPuedeEstarEnFavoritasYVistasALaVez() throws Exception {
+        long id = crearPelicula("Marca Cinco");
+
+        marcar("favorita", id, 206).andExpect(status().isNoContent());
+        marcar("vista", id, 206).andExpect(status().isNoContent());
+        desmarcar("favorita", id, 206).andExpect(status().isNoContent());
+
+        lista("favoritas", 206).andExpect(jsonPath("$.length()").value(0));
+        lista("vistas", 206).andExpect(jsonPath("$.length()").value(1));
+    }
 }

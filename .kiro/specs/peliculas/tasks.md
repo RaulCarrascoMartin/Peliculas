@@ -50,7 +50,7 @@
   - [x] 7.1 Entidad anémica `MarcaPelicula` y su repositorio
   - [x] 7.2 Servicio para marcar y desmarcar películas como favoritas o vistas
   - [x] 7.3 Endpoints para marcar, desmarcar y consultar las propias listas
-  - [ ] 7.4 Pruebas del servicio y del controlador
+  - [x] 7.4 Pruebas del servicio y del controlador
   - _Requisitos: 5.1, 5.2, 5.3_
 
 - [ ] 8. Borrado coordinado entre módulos

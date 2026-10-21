@@ -110,4 +110,16 @@ class MarcaPeliculaServiceTest {
         assertEquals(1, lista.size());
         assertEquals("Película 10", lista.get(0).titulo());
     }
+
+    @Test
+    void desmarcarUnaPeliculaInexistenteNoLanzaError() {
+        servicioDe(1L).desmarcar(99L, TipoMarca.FAVORITA);
+
+        assertEquals(0, repositorio.count());
+    }
+
+    @Test
+    void sinMarcasLaListaEstaVacia() {
+        assertTrue(servicioDe(1L).peliculasMarcadas(TipoMarca.VISTA).isEmpty());
+    }
 }
