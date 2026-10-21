@@ -47,7 +47,7 @@
   - _Requisitos: 4.1, 4.2, 4.3, 4.4_
 
 - [ ] 7. Módulo `valoracion`: favoritas y vistas
-  - [ ] 7.1 Entidad anémica `MarcaPelicula` y su repositorio
+  - [x] 7.1 Entidad anémica `MarcaPelicula` y su repositorio
   - [ ] 7.2 Servicio para marcar y desmarcar películas como favoritas o vistas
   - [ ] 7.3 Endpoints para marcar, desmarcar y consultar las propias listas
   - [ ] 7.4 Pruebas del servicio y del controlador
