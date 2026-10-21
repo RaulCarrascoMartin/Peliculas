@@ -39,7 +39,7 @@
   - _Requisitos: 2.1, 3.1, 3.2, 3.3_
 
 - [ ] 6. Módulo `valoracion`: valoraciones
-  - [ ] 6.1 Entidad anémica `Valoracion`, restricción única (usuario, película) y `ValoracionRepository`
+  - [x] 6.1 Entidad anémica `Valoracion`, restricción única (usuario, película) y `ValoracionRepository`
   - [ ] 6.2 `ValoracionService`: crear o actualizar la valoración del usuario actual, validar el rango 1-5 y comprobar que la película existe con `PeliculaApi`
   - [ ] 6.3 Recalcular la media y guardarla mediante `PeliculaApi`
   - [ ] 6.4 `ValoracionRequest`, `ValoracionResponse` y `ValoracionController`
