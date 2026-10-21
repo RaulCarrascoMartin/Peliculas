@@ -54,7 +54,7 @@
   - _Requisitos: 5.1, 5.2, 5.3_
 
 - [ ] 8. Borrado coordinado entre módulos
-  - [ ] 8.1 Decidir cómo `valoracion` limpia sus datos al borrar una película sin crear un ciclo entre módulos (propuesta: `pelicula` publica un evento `PeliculaEliminada` y `valoracion` lo escucha)
+  - [x] 8.1 Decidir cómo `valoracion` limpia sus datos al borrar una película sin crear un ciclo entre módulos (propuesta: `pelicula` publica un evento `PeliculaEliminada` y `valoracion` lo escucha)
   - [ ] 8.2 Implementar el borrado de valoraciones y marcas
   - [ ] 8.3 Prueba de integración del borrado
   - _Requisitos: 1.4_
@@ -74,3 +74,4 @@
 - 6.4: la BD de pruebas H2 se comparte entre tests de integración; los que crean películas deben borrarlas al terminar (ver `ValoracionControllerIntegracionTest`) o romperán el listado de `PeliculaControllerIntegracionTest`. `PUT /api/peliculas/{id}/valoracion` ya queda protegido por `anyRequest().authenticated()`.
 - 7.2: `MarcaPeliculaService` (separado de `ValoracionService`) devuelve ids de película en `peliculasMarcadas`; para 7.3, listar "mis favoritas/vistas" con datos de película exige ampliar `PeliculaApi` (p. ej. consulta por ids) porque `valoracion` no puede usar `PeliculaRepository`.
 - 7.3: `PeliculaApi.resumenes(ids)` y el record `PeliculaResumen` (raíz de `pelicula`) permiten a `valoracion` listar películas sin tocar `pelicula.domain`; cualquier implementación nueva de `PeliculaApi` o doble debe implementarlo.
+- 8.1 (decisión): borrado coordinado por evento. `PeliculaService.eliminar` (con `@Transactional`) publica `PeliculaEliminada(Long peliculaId)` (record en `org.example.pelicula`) con `ApplicationEventPublisher`; `valoracion` lo escucha con `@EventListener` síncrono (misma transacción) y borra valoraciones y marcas de esa película. Alternativa descartada: `pelicula` llamando a `ValoracionApi` (ciclo entre módulos, lo prohíbe ArchUnit). `design.md` actualizado.
