@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Películas</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <header>
+    <h1>🎬 Películas</h1>
+    <div id="sesion"></div>
+  </header>
+
+  <div id="aviso" role="status" hidden></div>
+
+  <main>
+    <section id="acceso" class="panel">
+      <h2>Acceso</h2>
+      <form id="form-acceso">
+        <input name="email" type="email" placeholder="Email" required autocomplete="username">
+        <input name="contrasena" type="password" placeholder="Contraseña (mín. 8)" required autocomplete="current-password">
+        <button type="submit" data-accion="login">Entrar</button>
+        <button type="submit" data-accion="registro" class="secundario">Registrarme</button>
+      </form>
+    </section>
+
+    <nav id="pestanas" role="tablist">
+      <button data-vista="catalogo" class="activa">Catálogo</button>
+      <button data-vista="favoritas" data-requiere-sesion>Mis favoritas</button>
+      <button data-vista="vistas" data-requiere-sesion>Mis vistas</button>
+    </nav>
+
+    <section id="vista-catalogo">
+      <form id="form-filtros" class="panel filtros">
+        <input name="titulo" placeholder="Título">
+        <input name="genero" placeholder="Género">
+        <input name="anio" type="number" placeholder="Año">
+        <input name="director" placeholder="Director">
+        <button type="submit">Buscar</button>
+        <button type="reset" class="secundario">Limpiar</button>
+      </form>
+
+      <form id="form-pelicula" class="panel" data-solo-admin hidden>
+        <h2 id="titulo-form-pelicula">Nueva película</h2>
+        <input name="titulo" placeholder="Título" required>
+        <input name="anio" type="number" placeholder="Año (1888-2100)" required>
+        <input name="genero" placeholder="Género" required>
+        <input name="director" placeholder="Director" required>
+        <button type="submit">Guardar</button>
+        <button type="button" id="cancelar-edicion" class="secundario" hidden>Cancelar</button>
+      </form>
+
+      <div id="lista" class="rejilla"></div>
+      <div id="paginacion"></div>
+    </section>
+
+    <section id="vista-marcadas" hidden>
+      <h2 id="titulo-marcadas"></h2>
+      <div id="lista-marcadas" class="rejilla"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

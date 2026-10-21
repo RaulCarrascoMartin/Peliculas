@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(rutas -> rutas
                         .requestMatchers(HttpMethod.POST, "/api/auth/registro", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/peliculas", "/api/peliculas/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/index.html", "/app.js", "/estilos.css").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((peticion, respuesta, ex) ->
