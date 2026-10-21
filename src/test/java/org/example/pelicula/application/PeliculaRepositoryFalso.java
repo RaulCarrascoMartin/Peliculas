@@ -41,4 +41,11 @@ public class PeliculaRepositoryFalso extends RepositorioEnMemoria<Pelicula> impl
         int hasta = Math.min(desde + paginacion.getPageSize(), filtradas.size());
         return new PageImpl<>(filtradas.subList(desde, hasta), paginacion, filtradas.size());
     }
+
+    @Override
+    public List<Pelicula> findAllById(Iterable<Long> ids) {
+        List<Pelicula> encontradas = new java.util.ArrayList<>();
+        ids.forEach(id -> findById(id).ifPresent(encontradas::add));
+        return encontradas;
+    }
 }

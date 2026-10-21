@@ -2,11 +2,16 @@ package org.example.pelicula.application;
 
 import org.example.compartido.RecursoNoEncontradoException;
 import org.example.pelicula.PeliculaApi;
+import org.example.pelicula.PeliculaResumen;
 import org.example.pelicula.domain.Pelicula;
 import org.example.pelicula.domain.PeliculaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class PeliculaService implements PeliculaApi {
@@ -61,6 +66,15 @@ public class PeliculaService implements PeliculaApi {
         Pelicula pelicula = detalle(id);
         pelicula.setValoracionMedia(media);
         peliculas.save(pelicula);
+    }
+
+    @Override
+    public List<PeliculaResumen> resumenes(Collection<Long> ids) {
+        return peliculas.findAllById(ids).stream()
+                .sorted(Comparator.comparing(Pelicula::getId))
+                .map(p -> new PeliculaResumen(p.getId(), p.getTitulo(), p.getAnio(), p.getGenero(),
+                        p.getDirector(), p.getValoracionMedia()))
+                .toList();
     }
 
     private static RecursoNoEncontradoException noEncontrada(Long id) {

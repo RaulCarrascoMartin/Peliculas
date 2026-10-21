@@ -2,9 +2,12 @@ package org.example.valoracion.application;
 
 import org.example.compartido.RecursoNoEncontradoException;
 import org.example.pelicula.PeliculaApi;
+import org.example.pelicula.PeliculaResumen;
 
 import java.util.HashMap;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,5 +36,12 @@ public class PeliculaApiFalsa implements PeliculaApi {
             throw new RecursoNoEncontradoException("Película " + id + " no encontrada");
         }
         medias.put(id, media);
+    }
+
+    @Override
+    public List<PeliculaResumen> resumenes(Collection<Long> ids) {
+        return ids.stream().filter(this::existe).sorted()
+                .map(id -> new PeliculaResumen(id, "Película " + id, 2000, "Drama", "Director", medias.get(id)))
+                .toList();
     }
 }

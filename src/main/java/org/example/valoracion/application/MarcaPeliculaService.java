@@ -3,6 +3,7 @@ package org.example.valoracion.application;
 import org.example.compartido.RecursoNoEncontradoException;
 import org.example.compartido.UsuarioActual;
 import org.example.pelicula.PeliculaApi;
+import org.example.pelicula.PeliculaResumen;
 import org.example.valoracion.domain.MarcaPelicula;
 import org.example.valoracion.domain.MarcaPeliculaRepository;
 import org.example.valoracion.domain.TipoMarca;
@@ -45,10 +46,11 @@ public class MarcaPeliculaService {
                 .ifPresent(marcas::delete);
     }
 
-    /** Ids de las películas de la lista del usuario actual. */
-    public List<Long> peliculasMarcadas(TipoMarca tipo) {
-        return marcas.findByUsuarioIdAndTipo(usuarioActual.id(), tipo).stream()
+    /** Películas de la lista del usuario actual, ordenadas por id. */
+    public List<PeliculaResumen> peliculasMarcadas(TipoMarca tipo) {
+        List<Long> ids = marcas.findByUsuarioIdAndTipo(usuarioActual.id(), tipo).stream()
                 .map(MarcaPelicula::getPeliculaId)
                 .toList();
+        return peliculas.resumenes(ids);
     }
 }

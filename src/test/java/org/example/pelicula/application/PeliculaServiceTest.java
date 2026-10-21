@@ -185,4 +185,29 @@ class PeliculaServiceTest {
         assertTrue(titulos("zzz", null, null, null).isEmpty());
         assertTrue(titulos(null, null, 1800, null).isEmpty());
     }
+
+    @Test
+    void resumenesDevuelveLasPeliculasPedidasOrdenadasPorIdIgnorandoLasInexistentes() {
+        servicio.crear(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott"));
+        servicio.crear(pelicula("Aliens", 1986, "Ciencia ficción", "James Cameron"));
+        servicio.crear(pelicula("Gladiator", 2000, "Drama", "Ridley Scott"));
+        servicio.actualizarValoracionMedia(3L, 4.5);
+
+        var resumenes = servicio.resumenes(java.util.List.of(3L, 1L, 99L));
+
+        assertEquals(2, resumenes.size());
+        assertEquals(1L, resumenes.get(0).id());
+        assertEquals("Alien", resumenes.get(0).titulo());
+        assertEquals(3L, resumenes.get(1).id());
+        assertEquals("Gladiator", resumenes.get(1).titulo());
+        assertEquals(2000, resumenes.get(1).anio());
+        assertEquals("Drama", resumenes.get(1).genero());
+        assertEquals("Ridley Scott", resumenes.get(1).director());
+        assertEquals(4.5, resumenes.get(1).valoracionMedia());
+    }
+
+    @Test
+    void resumenesSinIdsDevuelveListaVacia() {
+        assertTrue(servicio.resumenes(java.util.List.of()).isEmpty());
+    }
 }

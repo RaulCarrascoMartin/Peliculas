@@ -2,6 +2,7 @@ package org.example.valoracion.application;
 
 import org.example.compartido.RecursoNoEncontradoException;
 import org.example.compartido.UsuarioActualFalso;
+import org.example.pelicula.PeliculaResumen;
 import org.example.valoracion.domain.TipoMarca;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,11 +30,15 @@ class MarcaPeliculaServiceTest {
         return new MarcaPeliculaService(repositorio, peliculas, new UsuarioActualFalso(usuarioId, "USUARIO"));
     }
 
+    private List<Long> idsMarcados(Long usuarioId, TipoMarca tipo) {
+        return servicioDe(usuarioId).peliculasMarcadas(tipo).stream().map(PeliculaResumen::id).toList();
+    }
+
     @Test
     void marcaUnaPeliculaComoFavoritaParaElUsuarioActual() {
         servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
 
-        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA));
+        assertEquals(List.of(10L), idsMarcados(1L, TipoMarca.FAVORITA));
         assertTrue(servicioDe(1L).peliculasMarcadas(TipoMarca.VISTA).isEmpty());
     }
 
@@ -50,8 +55,8 @@ class MarcaPeliculaServiceTest {
         servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
         servicioDe(1L).marcar(10L, TipoMarca.VISTA);
 
-        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA));
-        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.VISTA));
+        assertEquals(List.of(10L), idsMarcados(1L, TipoMarca.FAVORITA));
+        assertEquals(List.of(10L), idsMarcados(1L, TipoMarca.VISTA));
     }
 
     @Test
@@ -70,7 +75,7 @@ class MarcaPeliculaServiceTest {
         servicioDe(1L).desmarcar(10L, TipoMarca.FAVORITA);
 
         assertTrue(servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA).isEmpty());
-        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.VISTA));
+        assertEquals(List.of(10L), idsMarcados(1L, TipoMarca.VISTA));
     }
 
     @Test
@@ -88,11 +93,21 @@ class MarcaPeliculaServiceTest {
         servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
         servicioDe(2L).marcar(11L, TipoMarca.FAVORITA);
 
-        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA));
-        assertEquals(List.of(11L), servicioDe(2L).peliculasMarcadas(TipoMarca.FAVORITA));
+        assertEquals(List.of(10L), idsMarcados(1L, TipoMarca.FAVORITA));
+        assertEquals(List.of(11L), idsMarcados(2L, TipoMarca.FAVORITA));
 
         servicioDe(2L).desmarcar(10L, TipoMarca.FAVORITA);
 
-        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA));
+        assertEquals(List.of(10L), idsMarcados(1L, TipoMarca.FAVORITA));
+    }
+
+    @Test
+    void laListaIncluyeLosDatosDeLaPelicula() {
+        servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
+
+        var lista = servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA);
+
+        assertEquals(1, lista.size());
+        assertEquals("Película 10", lista.get(0).titulo());
     }
 }
