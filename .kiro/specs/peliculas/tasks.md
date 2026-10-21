@@ -60,7 +60,7 @@
   - _Requisitos: 1.4_
 
 - [ ] 9. Cierre
-  - [ ] 9.1 Revisar la cobertura de requisitos con las pruebas de integración
+  - [x] 9.1 Revisar la cobertura de requisitos con las pruebas de integración
   - [ ] 9.2 Ejecutar `mvn test` completo, incluidas las pruebas de ArchUnit
 
 ## Implementation Notes
@@ -75,3 +75,4 @@
 - 7.2: `MarcaPeliculaService` (separado de `ValoracionService`) devuelve ids de película en `peliculasMarcadas`; para 7.3, listar "mis favoritas/vistas" con datos de película exige ampliar `PeliculaApi` (p. ej. consulta por ids) porque `valoracion` no puede usar `PeliculaRepository`.
 - 7.3: `PeliculaApi.resumenes(ids)` y el record `PeliculaResumen` (raíz de `pelicula`) permiten a `valoracion` listar películas sin tocar `pelicula.domain`; cualquier implementación nueva de `PeliculaApi` o doble debe implementarlo.
 - 8.1 (decisión): borrado coordinado por evento. `PeliculaService.eliminar` (con `@Transactional`) publica `PeliculaEliminada(Long peliculaId)` (record en `org.example.pelicula`) con `ApplicationEventPublisher`; `valoracion` lo escucha con `@EventListener` síncrono (misma transacción) y borra valoraciones y marcas de esa película. Alternativa descartada: `pelicula` llamando a `ValoracionApi` (ciclo entre módulos, lo prohíbe ArchUnit). `design.md` actualizado.
+- 9.1 (cobertura por pruebas de integración): 0.1/0.3 `AutenticacionIntegracionTest`; 0.2/0.4/0.5 `AutenticacionControllerTest` y `SeguridadIntegracionTest`; 1.1-1.3, 1.5, 1.6, 2.1, 2.2, 3.1-3.3 `PeliculaControllerIntegracionTest`; 1.4 `BorradoPeliculaIntegracionTest`; 4.1-4.4 `ValoracionControllerIntegracionTest`; 5.1-5.3 `MarcaPeliculaControllerIntegracionTest`. Sin huecos pendientes.
