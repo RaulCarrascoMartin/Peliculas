@@ -34,7 +34,7 @@
 - [ ] 5. Módulo `pelicula`: consulta, búsqueda y filtros
   - [x] 5.1 Listado paginado
   - [x] 5.2 Búsqueda por título sin distinguir mayúsculas y filtros por género, año y director combinables
-  - [ ] 5.3 Lista vacía cuando no hay resultados
+  - [x] 5.3 Lista vacía cuando no hay resultados
   - [ ] 5.4 Pruebas del servicio y del controlador
   - _Requisitos: 2.1, 3.1, 3.2, 3.3_
 

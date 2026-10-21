@@ -209,4 +209,18 @@ class PeliculaControllerIntegracionTest {
                 .andExpect(jsonPath("$.page.size").value(2))
                 .andExpect(jsonPath("$.page.totalElements").isNumber());
     }
+
+    @Test
+    void unaBusquedaSinResultadosDevuelveListaVaciaConEstado200() throws Exception {
+        crearComoAdmin(ALIEN);
+
+        mvc.perform(get("/api/peliculas").param("titulo", "no-existe-xyz"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(0))
+                .andExpect(jsonPath("$.page.totalElements").value(0));
+
+        mvc.perform(get("/api/peliculas").param("titulo", "alien").param("genero", "Western"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(0));
+    }
 }
