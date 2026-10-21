@@ -35,4 +35,9 @@ public class MarcaPeliculaRepositoryFalso extends RepositorioEnMemoria<MarcaPeli
                 .filter(m -> m.getUsuarioId().equals(usuarioId) && m.getTipo() == tipo)
                 .toList();
     }
+
+    @Override
+    public void deleteByPeliculaId(Long peliculaId) {
+        entidades.values().removeIf(m -> m.getPeliculaId().equals(peliculaId));
+    }
 }

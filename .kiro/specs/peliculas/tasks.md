@@ -55,7 +55,7 @@
 
 - [ ] 8. Borrado coordinado entre módulos
   - [x] 8.1 Decidir cómo `valoracion` limpia sus datos al borrar una película sin crear un ciclo entre módulos (propuesta: `pelicula` publica un evento `PeliculaEliminada` y `valoracion` lo escucha)
-  - [ ] 8.2 Implementar el borrado de valoraciones y marcas
+  - [x] 8.2 Implementar el borrado de valoraciones y marcas
   - [ ] 8.3 Prueba de integración del borrado
   - _Requisitos: 1.4_
 

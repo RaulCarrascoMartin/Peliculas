@@ -10,4 +10,6 @@ public interface MarcaPeliculaRepository extends JpaRepository<MarcaPelicula, Lo
     Optional<MarcaPelicula> findByUsuarioIdAndPeliculaIdAndTipo(Long usuarioId, Long peliculaId, TipoMarca tipo);
 
     List<MarcaPelicula> findByUsuarioIdAndTipo(Long usuarioId, TipoMarca tipo);
+
+    void deleteByPeliculaId(Long peliculaId);
 }

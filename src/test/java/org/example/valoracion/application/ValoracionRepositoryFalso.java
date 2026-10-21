@@ -30,4 +30,9 @@ public class ValoracionRepositoryFalso extends RepositorioEnMemoria<Valoracion> 
     public List<Valoracion> findByPeliculaId(Long peliculaId) {
         return entidades.values().stream().filter(v -> v.getPeliculaId().equals(peliculaId)).toList();
     }
+
+    @Override
+    public void deleteByPeliculaId(Long peliculaId) {
+        entidades.values().removeIf(v -> v.getPeliculaId().equals(peliculaId));
+    }
 }

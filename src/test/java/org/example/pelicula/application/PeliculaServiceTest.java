@@ -1,6 +1,7 @@
 package org.example.pelicula.application;
 
 import org.example.compartido.RecursoNoEncontradoException;
+import org.example.pelicula.PeliculaEliminada;
 import org.example.pelicula.domain.Pelicula;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,11 +17,12 @@ class PeliculaServiceTest {
 
     private PeliculaRepositoryFalso repositorio;
     private PeliculaService servicio;
+    private final java.util.List<Object> eventos = new java.util.ArrayList<>();
 
     @BeforeEach
     void preparar() {
         repositorio = new PeliculaRepositoryFalso();
-        servicio = new PeliculaService(repositorio);
+        servicio = new PeliculaService(repositorio, eventos::add);
     }
 
     private static Pelicula pelicula(String titulo, int anio, String genero, String director) {
@@ -209,5 +211,21 @@ class PeliculaServiceTest {
     @Test
     void resumenesSinIdsDevuelveListaVacia() {
         assertTrue(servicio.resumenes(java.util.List.of()).isEmpty());
+    }
+
+    @Test
+    void eliminarPublicaElEventoPeliculaEliminada() {
+        var id = servicio.crear(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).getId();
+
+        servicio.eliminar(id);
+
+        assertEquals(java.util.List.of(new PeliculaEliminada(id)), eventos);
+    }
+
+    @Test
+    void eliminarUnaPeliculaInexistenteNoPublicaNingunEvento() {
+        assertThrows(RecursoNoEncontradoException.class, () -> servicio.eliminar(99L));
+
+        assertTrue(eventos.isEmpty());
     }
 }

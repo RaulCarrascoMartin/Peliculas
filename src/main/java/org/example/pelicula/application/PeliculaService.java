@@ -2,12 +2,15 @@ package org.example.pelicula.application;
 
 import org.example.compartido.RecursoNoEncontradoException;
 import org.example.pelicula.PeliculaApi;
+import org.example.pelicula.PeliculaEliminada;
 import org.example.pelicula.PeliculaResumen;
 import org.example.pelicula.domain.Pelicula;
 import org.example.pelicula.domain.PeliculaRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -17,9 +20,11 @@ import java.util.List;
 public class PeliculaService implements PeliculaApi {
 
     private final PeliculaRepository peliculas;
+    private final ApplicationEventPublisher eventos;
 
-    public PeliculaService(PeliculaRepository peliculas) {
+    public PeliculaService(PeliculaRepository peliculas, ApplicationEventPublisher eventos) {
         this.peliculas = peliculas;
+        this.eventos = eventos;
     }
 
     public Pelicula crear(Pelicula pelicula) {
@@ -49,11 +54,14 @@ public class PeliculaService implements PeliculaApi {
         return peliculas.save(existente);
     }
 
+    /** Borra la película y avisa con {@link PeliculaEliminada}; los oyentes actúan en la misma transacción. */
+    @Transactional
     public void eliminar(Long id) {
         if (!peliculas.existsById(id)) {
             throw noEncontrada(id);
         }
         peliculas.deleteById(id);
+        eventos.publishEvent(new PeliculaEliminada(id));
     }
 
     @Override
