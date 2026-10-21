@@ -37,6 +37,15 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void validacionDeNegocioDevuelve400() {
+        var respuesta = handler.validacion(new ValidacionException("La puntuación debe estar entre 1 y 5"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, respuesta.getStatusCode());
+        assertEquals(400, respuesta.getBody().estado());
+        assertEquals("La puntuación debe estar entre 1 y 5", respuesta.getBody().mensaje());
+    }
+
+    @Test
     void validacionDevuelve400ConErroresPorCampo() throws Exception {
         var resultado = new BeanPropertyBindingResult(new Object(), "peliculaRequest");
         resultado.addError(new FieldError("peliculaRequest", "titulo", "no debe estar vacío"));

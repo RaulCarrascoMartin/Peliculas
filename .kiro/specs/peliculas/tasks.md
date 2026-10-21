@@ -40,7 +40,7 @@
 
 - [ ] 6. Módulo `valoracion`: valoraciones
   - [x] 6.1 Entidad anémica `Valoracion`, restricción única (usuario, película) y `ValoracionRepository`
-  - [ ] 6.2 `ValoracionService`: crear o actualizar la valoración del usuario actual, validar el rango 1-5 y comprobar que la película existe con `PeliculaApi`
+  - [x] 6.2 `ValoracionService`: crear o actualizar la valoración del usuario actual, validar el rango 1-5 y comprobar que la película existe con `PeliculaApi`
   - [ ] 6.3 Recalcular la media y guardarla mediante `PeliculaApi`
   - [ ] 6.4 `ValoracionRequest`, `ValoracionResponse` y `ValoracionController`
   - [ ] 6.5 Pruebas con dobles escritos a mano de `PeliculaApi` y `UsuarioActual`
@@ -70,3 +70,4 @@
 - 3.4: `JwtFilter` se instancia dentro de `SecurityConfig` y no es bean (así Boot no lo registra dos veces). Rutas públicas: POST registro/login y GET `/api/peliculas` y `/api/peliculas/*`; cualquier ruta nueva pública hay que añadirla ahí. `SeguridadIntegracionTest` ya cubre sin token, caducado, firma alterada, otro secreto y rol insuficiente (adelanta parte de 3.6).
 - 5.1: el listado devuelve `PagedModel` (`content` + `page`), orden por defecto por id; el doble `PeliculaRepositoryFalso` implementa `findAll(Pageable)`.
 - 5.2: `PeliculaRepository.buscar` (JPQL con parámetros opcionales) sustituye a `listar`; `PeliculaService.buscar` ignora filtros en blanco; género y director se comparan exactos (la colación de MariaDB suele ignorar mayúsculas). Maven: `/opt/homebrew/Cellar/apache-maven-3.9.6/bin/mvn` (no está en el PATH).
+- 6.2: `ValidacionException` (en `compartido`, 400) para reglas de negocio incumplidas; `ValoracionService.valorar` valida el rango antes de comprobar la película. Dobles: `PeliculaApiFalsa` y `ValoracionRepositoryFalso` en `src/test/.../valoracion/application`.

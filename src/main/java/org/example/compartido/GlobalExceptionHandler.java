@@ -37,6 +37,11 @@ public class GlobalExceptionHandler {
         return respuesta(HttpStatus.CONFLICT, ex.getMessage(), Map.of());
     }
 
+    @ExceptionHandler(ValidacionException.class)
+    public ResponseEntity<ErrorRespuesta> validacion(ValidacionException ex) {
+        return respuesta(HttpStatus.BAD_REQUEST, ex.getMessage(), Map.of());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorRespuesta> validacion(MethodArgumentNotValidException ex) {
         Map<String, String> errores = new LinkedHashMap<>();

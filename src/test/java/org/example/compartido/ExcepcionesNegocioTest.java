@@ -22,4 +22,12 @@ class ExcepcionesNegocioTest {
         assertInstanceOf(RuntimeException.class, ex);
         assertEquals("El email ya está registrado", ex.getMessage());
     }
+
+    @Test
+    void validacionConservaElMensaje() {
+        var ex = new ValidacionException("La puntuación debe estar entre 1 y 5");
+
+        assertInstanceOf(RuntimeException.class, ex);
+        assertEquals("La puntuación debe estar entre 1 y 5", ex.getMessage());
+    }
 }

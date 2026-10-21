@@ -1,0 +1,33 @@
+package org.example.valoracion.application;
+
+import org.example.compartido.RepositorioEnMemoria;
+import org.example.valoracion.domain.Valoracion;
+import org.example.valoracion.domain.ValoracionRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public class ValoracionRepositoryFalso extends RepositorioEnMemoria<Valoracion> implements ValoracionRepository {
+
+    @Override
+    protected Long idDe(Valoracion valoracion) {
+        return valoracion.getId();
+    }
+
+    @Override
+    protected void asignarId(Valoracion valoracion, Long id) {
+        valoracion.setId(id);
+    }
+
+    @Override
+    public Optional<Valoracion> findByUsuarioIdAndPeliculaId(Long usuarioId, Long peliculaId) {
+        return entidades.values().stream()
+                .filter(v -> v.getUsuarioId().equals(usuarioId) && v.getPeliculaId().equals(peliculaId))
+                .findFirst();
+    }
+
+    @Override
+    public List<Valoracion> findByPeliculaId(Long peliculaId) {
+        return entidades.values().stream().filter(v -> v.getPeliculaId().equals(peliculaId)).toList();
+    }
+}
