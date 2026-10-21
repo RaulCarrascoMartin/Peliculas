@@ -223,4 +223,31 @@ class PeliculaControllerIntegracionTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(0));
     }
+
+    private static String json(String titulo, int anio, String genero, String director) {
+        return "{\"titulo\":\"" + titulo + "\",\"anio\":" + anio + ",\"genero\":\"" + genero
+                + "\",\"director\":\"" + director + "\"}";
+    }
+
+    @Test
+    void buscaYFiltraCombinandoTituloGeneroAnioYDirector() throws Exception {
+        crearComoAdmin(json("Zeta Uno", 1991, "GeneroZ", "DirectorZ"));
+        crearComoAdmin(json("Zeta Dos", 1992, "GeneroZ", "DirectorZ"));
+        crearComoAdmin(json("Otra", 1992, "GeneroZ", "OtroDirector"));
+
+        mvc.perform(get("/api/peliculas").param("titulo", "ZETA").param("genero", "GeneroZ"))
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+        mvc.perform(get("/api/peliculas").param("genero", "GeneroZ").param("anio", "1992"))
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+        mvc.perform(get("/api/peliculas").param("director", "DirectorZ").param("anio", "1992"))
+                .andExpect(jsonPath("$.page.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].titulo").value("Zeta Dos"));
+        mvc.perform(get("/api/peliculas").param("titulo", "zeta").param("director", "OtroDirector"))
+                .andExpect(jsonPath("$.page.totalElements").value(0));
+    }
+
+    @Test
+    void unAnioNoNumericoDevuelve400() throws Exception {
+        mvc.perform(get("/api/peliculas").param("anio", "abc")).andExpect(status().isBadRequest());
+    }
 }
