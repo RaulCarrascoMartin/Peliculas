@@ -28,4 +28,17 @@ public class PeliculaRepositoryFalso extends RepositorioEnMemoria<Pelicula> impl
         int hasta = Math.min(desde + paginacion.getPageSize(), todas.size());
         return new PageImpl<>(todas.subList(desde, hasta), paginacion, todas.size());
     }
+
+    @Override
+    public Page<Pelicula> buscar(String titulo, String genero, Integer anio, String director, Pageable paginacion) {
+        List<Pelicula> filtradas = entidades.values().stream()
+                .filter(p -> titulo == null || p.getTitulo().toLowerCase().contains(titulo.toLowerCase()))
+                .filter(p -> genero == null || genero.equalsIgnoreCase(p.getGenero()))
+                .filter(p -> anio == null || anio.equals(p.getAnio()))
+                .filter(p -> director == null || director.equalsIgnoreCase(p.getDirector()))
+                .toList();
+        int desde = (int) Math.min(paginacion.getOffset(), filtradas.size());
+        int hasta = Math.min(desde + paginacion.getPageSize(), filtradas.size());
+        return new PageImpl<>(filtradas.subList(desde, hasta), paginacion, filtradas.size());
+    }
 }

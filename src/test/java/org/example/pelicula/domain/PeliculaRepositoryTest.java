@@ -80,4 +80,26 @@ class PeliculaRepositoryTest {
 
         assertTrue(repositorio.findById(id).isEmpty());
     }
+
+    private void guardar(String titulo, int anio, String genero, String director) {
+        var pelicula = pelicula(titulo);
+        pelicula.setAnio(anio);
+        pelicula.setGenero(genero);
+        pelicula.setDirector(director);
+        repositorio.saveAndFlush(pelicula);
+    }
+
+    @Test
+    void buscaSinDistinguirMayusculasYCombinaFiltros() {
+        guardar("Alien", 1979, "Ciencia ficción", "Ridley Scott");
+        guardar("Aliens", 1986, "Ciencia ficción", "James Cameron");
+        guardar("Gladiator", 2000, "Drama", "Ridley Scott");
+        var pagina = org.springframework.data.domain.PageRequest.of(0, 10);
+
+        assertEquals(2, repositorio.buscar("ALIEN", null, null, null, pagina).getTotalElements());
+        assertEquals(1, repositorio.buscar("alien", null, 1986, null, pagina).getTotalElements());
+        assertEquals(1, repositorio.buscar(null, "Drama", null, "Ridley Scott", pagina).getTotalElements());
+        assertEquals(3, repositorio.buscar(null, null, null, null, pagina).getTotalElements());
+        assertTrue(repositorio.buscar("alien", "Drama", null, null, pagina).isEmpty());
+    }
 }

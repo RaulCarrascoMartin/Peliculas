@@ -120,7 +120,7 @@ class PeliculaServiceTest {
             servicio.crear(pelicula("Película " + i, 2000 + i, "Drama", "Director"));
         }
 
-        var pagina = servicio.listar(PageRequest.of(1, 2));
+        var pagina = servicio.buscar(null, null, null, null, PageRequest.of(1, 2));
 
         assertEquals(5, pagina.getTotalElements());
         assertEquals(3, pagina.getTotalPages());
@@ -130,6 +130,59 @@ class PeliculaServiceTest {
 
     @Test
     void listarSinPeliculasDevuelveUnaPaginaVacia() {
-        assertTrue(servicio.listar(PageRequest.of(0, 10)).isEmpty());
+        assertTrue(servicio.buscar(null, null, null, null, PageRequest.of(0, 10)).isEmpty());
+    }
+
+    private void crearCatalogo() {
+        servicio.crear(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott"));
+        servicio.crear(pelicula("Aliens", 1986, "Ciencia ficción", "James Cameron"));
+        servicio.crear(pelicula("Gladiator", 2000, "Drama", "Ridley Scott"));
+        servicio.crear(pelicula("Titanic", 1997, "Drama", "James Cameron"));
+    }
+
+    private java.util.List<String> titulos(String titulo, String genero, Integer anio, String director) {
+        return servicio.buscar(titulo, genero, anio, director, PageRequest.of(0, 10)).getContent().stream()
+                .map(Pelicula::getTitulo).toList();
+    }
+
+    @Test
+    void buscaPorTituloSinDistinguirMayusculasYPorFragmento() {
+        crearCatalogo();
+
+        assertEquals(java.util.List.of("Alien", "Aliens"), titulos("ALIEN", null, null, null));
+        assertEquals(java.util.List.of("Gladiator"), titulos("diat", null, null, null));
+    }
+
+    @Test
+    void filtraPorGeneroAnioYDirector() {
+        crearCatalogo();
+
+        assertEquals(java.util.List.of("Gladiator", "Titanic"), titulos(null, "Drama", null, null));
+        assertEquals(java.util.List.of("Titanic"), titulos(null, null, 1997, null));
+        assertEquals(java.util.List.of("Alien", "Gladiator"), titulos(null, null, null, "Ridley Scott"));
+    }
+
+    @Test
+    void combinaTodosLosFiltrosIndicados() {
+        crearCatalogo();
+
+        assertEquals(java.util.List.of("Gladiator"), titulos(null, "Drama", null, "Ridley Scott"));
+        assertEquals(java.util.List.of("Aliens"), titulos("alien", "Ciencia ficción", 1986, "James Cameron"));
+        assertTrue(titulos("alien", "Drama", null, null).isEmpty());
+    }
+
+    @Test
+    void ignoraLosFiltrosEnBlanco() {
+        crearCatalogo();
+
+        assertEquals(4, titulos("  ", "", null, " ").size());
+    }
+
+    @Test
+    void sinCoincidenciasDevuelveListaVacia() {
+        crearCatalogo();
+
+        assertTrue(titulos("zzz", null, null, null).isEmpty());
+        assertTrue(titulos(null, null, 1800, null).isEmpty());
     }
 }

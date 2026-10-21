@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,8 +31,13 @@ public class PeliculaController {
     }
 
     @GetMapping
-    public PagedModel<PeliculaResponse> listar(@PageableDefault(sort = "id") Pageable paginacion) {
-        return new PagedModel<>(servicio.listar(paginacion).map(PeliculaResponse::desde));
+    public PagedModel<PeliculaResponse> listar(@RequestParam(required = false) String titulo,
+                                               @RequestParam(required = false) String genero,
+                                               @RequestParam(required = false) Integer anio,
+                                               @RequestParam(required = false) String director,
+                                               @PageableDefault(sort = "id") Pageable paginacion) {
+        return new PagedModel<>(servicio.buscar(titulo, genero, anio, director, paginacion)
+                .map(PeliculaResponse::desde));
     }
 
     @GetMapping("/{id}")

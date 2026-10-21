@@ -25,8 +25,13 @@ public class PeliculaService implements PeliculaApi {
         return peliculas.findById(id).orElseThrow(() -> noEncontrada(id));
     }
 
-    public Page<Pelicula> listar(Pageable paginacion) {
-        return peliculas.findAll(paginacion);
+    /** Lista paginada; los filtros nulos o en blanco se ignoran y los indicados se combinan con "y". */
+    public Page<Pelicula> buscar(String titulo, String genero, Integer anio, String director, Pageable paginacion) {
+        return peliculas.buscar(texto(titulo), texto(genero), anio, texto(director), paginacion);
+    }
+
+    private static String texto(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.strip();
     }
 
     /** Sustituye título, año, género y director; la valoración media no se edita a mano. */
