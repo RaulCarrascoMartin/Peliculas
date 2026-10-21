@@ -7,6 +7,7 @@ import org.example.pelicula.PeliculaApi;
 import org.example.valoracion.domain.Valoracion;
 import org.example.valoracion.domain.ValoracionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ValoracionService {
@@ -25,6 +26,7 @@ public class ValoracionService {
     }
 
     /** Crea la valoración del usuario actual o, si ya existía para esa película, la actualiza. */
+    @Transactional
     public Valoracion valorar(Long peliculaId, int puntuacion, String comentario) {
         if (puntuacion < PUNTUACION_MINIMA || puntuacion > PUNTUACION_MAXIMA) {
             throw new ValidacionException(
@@ -43,6 +45,16 @@ public class ValoracionService {
                 });
         valoracion.setPuntuacion(puntuacion);
         valoracion.setComentario(comentario);
-        return valoraciones.save(valoracion);
+        Valoracion guardada = valoraciones.save(valoracion);
+        recalcularMedia(peliculaId);
+        return guardada;
+    }
+
+    private void recalcularMedia(Long peliculaId) {
+        double media = valoraciones.findByPeliculaId(peliculaId).stream()
+                .mapToInt(Valoracion::getPuntuacion)
+                .average()
+                .orElseThrow();
+        peliculas.actualizarValoracionMedia(peliculaId, media);
     }
 }

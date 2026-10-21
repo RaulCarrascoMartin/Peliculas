@@ -85,4 +85,49 @@ class ValoracionServiceTest {
         assertThrows(RecursoNoEncontradoException.class, () -> servicio.valorar(99L, 3, null));
         assertEquals(0, repositorio.count());
     }
+
+    @Test
+    void laPrimeraValoracionFijaLaMediaDeLaPelicula() {
+        servicioDe(1L).valorar(PELICULA, 4, null);
+
+        assertEquals(4.0, peliculas.mediaDe(PELICULA));
+    }
+
+    @Test
+    void recalculaLaMediaConTodasLasValoracionesDeLaPelicula() {
+        servicioDe(1L).valorar(PELICULA, 5, null);
+        servicioDe(2L).valorar(PELICULA, 2, null);
+        servicioDe(3L).valorar(PELICULA, 2, null);
+
+        assertEquals(3.0, peliculas.mediaDe(PELICULA));
+    }
+
+    @Test
+    void cambiarLaValoracionRecalculaLaMedia() {
+        servicioDe(1L).valorar(PELICULA, 5, null);
+        servicioDe(2L).valorar(PELICULA, 1, null);
+
+        servicioDe(2L).valorar(PELICULA, 3, null);
+
+        assertEquals(4.0, peliculas.mediaDe(PELICULA));
+    }
+
+    @Test
+    void laMediaSoloTieneEnCuentaLasValoracionesDeEsaPelicula() {
+        peliculas.anadirPelicula(11L);
+        servicioDe(1L).valorar(PELICULA, 5, null);
+        servicioDe(1L).valorar(11L, 1, null);
+
+        assertEquals(5.0, peliculas.mediaDe(PELICULA));
+        assertEquals(1.0, peliculas.mediaDe(11L));
+    }
+
+    @Test
+    void unaValoracionRechazadaNoTocaLaMedia() {
+        servicioDe(1L).valorar(PELICULA, 4, null);
+
+        assertThrows(ValidacionException.class, () -> servicioDe(2L).valorar(PELICULA, 9, null));
+
+        assertEquals(4.0, peliculas.mediaDe(PELICULA));
+    }
 }
