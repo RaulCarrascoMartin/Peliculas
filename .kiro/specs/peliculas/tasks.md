@@ -61,7 +61,7 @@
 
 - [ ] 9. Cierre
   - [x] 9.1 Revisar la cobertura de requisitos con las pruebas de integración
-  - [ ] 9.2 Ejecutar `mvn test` completo, incluidas las pruebas de ArchUnit
+  - [x] 9.2 Ejecutar `mvn test` completo, incluidas las pruebas de ArchUnit
 
 ## Implementation Notes
 - 3.2: `JwtTokens` (emitir/leer, en `compartido`) lo reutiliza `JwtFilter` en 3.4; `AutenticacionService` necesita un bean `PasswordEncoder` (BCrypt) (ya definido en `SecurityConfig`).
