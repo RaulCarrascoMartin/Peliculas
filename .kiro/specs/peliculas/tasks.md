@@ -43,7 +43,7 @@
   - [x] 6.2 `ValoracionService`: crear o actualizar la valoración del usuario actual, validar el rango 1-5 y comprobar que la película existe con `PeliculaApi`
   - [x] 6.3 Recalcular la media y guardarla mediante `PeliculaApi`
   - [x] 6.4 `ValoracionRequest`, `ValoracionResponse` y `ValoracionController`
-  - [ ] 6.5 Pruebas con dobles escritos a mano de `PeliculaApi` y `UsuarioActual`
+  - [x] 6.5 Pruebas con dobles escritos a mano de `PeliculaApi` y `UsuarioActual`
   - _Requisitos: 4.1, 4.2, 4.3, 4.4_
 
 - [ ] 7. Módulo `valoracion`: favoritas y vistas

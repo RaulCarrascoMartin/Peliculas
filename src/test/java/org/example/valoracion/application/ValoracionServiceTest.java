@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ValoracionServiceTest {
@@ -129,5 +130,30 @@ class ValoracionServiceTest {
         assertThrows(ValidacionException.class, () -> servicioDe(2L).valorar(PELICULA, 9, null));
 
         assertEquals(4.0, peliculas.mediaDe(PELICULA));
+    }
+
+    @Test
+    void laMediaConservaLosDecimales() {
+        servicioDe(1L).valorar(PELICULA, 4, null);
+        servicioDe(2L).valorar(PELICULA, 3, null);
+
+        assertEquals(3.5, peliculas.mediaDe(PELICULA));
+    }
+
+    @Test
+    void valorarDeNuevoSinComentarioBorraElComentarioAnterior() {
+        servicioDe(1L).valorar(PELICULA, 4, "Muy buena");
+
+        var actualizada = servicioDe(1L).valorar(PELICULA, 4, null);
+
+        assertNull(actualizada.getComentario());
+        assertNull(repositorio.findAll().get(0).getComentario());
+    }
+
+    @Test
+    void valorarUnaPeliculaInexistenteNoGuardaMediaAlguna() {
+        assertThrows(RecursoNoEncontradoException.class, () -> servicioDe(1L).valorar(99L, 3, null));
+
+        assertNull(peliculas.mediaDe(99L));
     }
 }
