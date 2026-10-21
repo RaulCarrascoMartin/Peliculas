@@ -1,0 +1,98 @@
+package org.example.valoracion.application;
+
+import org.example.compartido.RecursoNoEncontradoException;
+import org.example.compartido.UsuarioActualFalso;
+import org.example.valoracion.domain.TipoMarca;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class MarcaPeliculaServiceTest {
+
+    private MarcaPeliculaRepositoryFalso repositorio;
+    private PeliculaApiFalsa peliculas;
+
+    @BeforeEach
+    void preparar() {
+        repositorio = new MarcaPeliculaRepositoryFalso();
+        peliculas = new PeliculaApiFalsa();
+        peliculas.anadirPelicula(10L);
+        peliculas.anadirPelicula(11L);
+    }
+
+    private MarcaPeliculaService servicioDe(Long usuarioId) {
+        return new MarcaPeliculaService(repositorio, peliculas, new UsuarioActualFalso(usuarioId, "USUARIO"));
+    }
+
+    @Test
+    void marcaUnaPeliculaComoFavoritaParaElUsuarioActual() {
+        servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
+
+        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA));
+        assertTrue(servicioDe(1L).peliculasMarcadas(TipoMarca.VISTA).isEmpty());
+    }
+
+    @Test
+    void marcarDosVecesLaMismaPeliculaNoLaDuplica() {
+        servicioDe(1L).marcar(10L, TipoMarca.VISTA);
+        servicioDe(1L).marcar(10L, TipoMarca.VISTA);
+
+        assertEquals(1, repositorio.count());
+    }
+
+    @Test
+    void unaPeliculaPuedeSerFavoritaYVista() {
+        servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
+        servicioDe(1L).marcar(10L, TipoMarca.VISTA);
+
+        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA));
+        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.VISTA));
+    }
+
+    @Test
+    void marcarUnaPeliculaInexistenteLanza404SinGuardar() {
+        var servicio = servicioDe(1L);
+
+        assertThrows(RecursoNoEncontradoException.class, () -> servicio.marcar(99L, TipoMarca.FAVORITA));
+        assertEquals(0, repositorio.count());
+    }
+
+    @Test
+    void desmarcaLaPeliculaSoloDeEsaLista() {
+        servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
+        servicioDe(1L).marcar(10L, TipoMarca.VISTA);
+
+        servicioDe(1L).desmarcar(10L, TipoMarca.FAVORITA);
+
+        assertTrue(servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA).isEmpty());
+        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.VISTA));
+    }
+
+    @Test
+    void desmarcarUnaPeliculaNoMarcadaNoHaceNada() {
+        servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
+
+        servicioDe(1L).desmarcar(11L, TipoMarca.FAVORITA);
+        servicioDe(1L).desmarcar(10L, TipoMarca.VISTA);
+
+        assertEquals(1, repositorio.count());
+    }
+
+    @Test
+    void cadaUsuarioSoloVeYModificaSusPropiasMarcas() {
+        servicioDe(1L).marcar(10L, TipoMarca.FAVORITA);
+        servicioDe(2L).marcar(11L, TipoMarca.FAVORITA);
+
+        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA));
+        assertEquals(List.of(11L), servicioDe(2L).peliculasMarcadas(TipoMarca.FAVORITA));
+
+        servicioDe(2L).desmarcar(10L, TipoMarca.FAVORITA);
+
+        assertEquals(List.of(10L), servicioDe(1L).peliculasMarcadas(TipoMarca.FAVORITA));
+    }
+}

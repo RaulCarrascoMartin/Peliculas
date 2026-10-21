@@ -48,7 +48,7 @@
 
 - [ ] 7. Módulo `valoracion`: favoritas y vistas
   - [x] 7.1 Entidad anémica `MarcaPelicula` y su repositorio
-  - [ ] 7.2 Servicio para marcar y desmarcar películas como favoritas o vistas
+  - [x] 7.2 Servicio para marcar y desmarcar películas como favoritas o vistas
   - [ ] 7.3 Endpoints para marcar, desmarcar y consultar las propias listas
   - [ ] 7.4 Pruebas del servicio y del controlador
   - _Requisitos: 5.1, 5.2, 5.3_
@@ -72,3 +72,4 @@
 - 5.2: `PeliculaRepository.buscar` (JPQL con parámetros opcionales) sustituye a `listar`; `PeliculaService.buscar` ignora filtros en blanco; género y director se comparan exactos (la colación de MariaDB suele ignorar mayúsculas). Maven: `/opt/homebrew/Cellar/apache-maven-3.9.6/bin/mvn` (no está en el PATH).
 - 6.2: `ValidacionException` (en `compartido`, 400) para reglas de negocio incumplidas; `ValoracionService.valorar` valida el rango antes de comprobar la película. Dobles: `PeliculaApiFalsa` y `ValoracionRepositoryFalso` en `src/test/.../valoracion/application`.
 - 6.4: la BD de pruebas H2 se comparte entre tests de integración; los que crean películas deben borrarlas al terminar (ver `ValoracionControllerIntegracionTest`) o romperán el listado de `PeliculaControllerIntegracionTest`. `PUT /api/peliculas/{id}/valoracion` ya queda protegido por `anyRequest().authenticated()`.
+- 7.2: `MarcaPeliculaService` (separado de `ValoracionService`) devuelve ids de película en `peliculasMarcadas`; para 7.3, listar "mis favoritas/vistas" con datos de película exige ampliar `PeliculaApi` (p. ej. consulta por ids) porque `valoracion` no puede usar `PeliculaRepository`.
