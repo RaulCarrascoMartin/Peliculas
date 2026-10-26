@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: Contrato compras (temporal, spike 1.1)
+  version: 0.0.0-spike
+paths:
+  /api/compras:
+    get:
+      tags: [ComprasRest]
+      operationId: listarCompras
+      responses:
+        '200':
+          description: Línea de compra de prueba
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineaCompra'
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LineaCompra:
+      type: object
+      required: [peliculaId, titulo]
+      properties:
+        peliculaId:
+          type: integer
+          format: int64
+        titulo:
+          type: string

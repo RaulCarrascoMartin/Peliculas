@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: Contrato carrito (temporal, spike 1.1)
+  version: 0.0.0-spike
+paths:
+  /api/carrito:
+    get:
+      tags: [CarritoRest]
+      operationId: verCarrito
+      responses:
+        '200':
+          description: Línea de prueba
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineaCarrito'
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LineaCarrito:
+      type: object
+      required: [peliculaId, titulo]
+      properties:
+        peliculaId:
+          type: integer
+          format: int64
+        titulo:
+          type: string
