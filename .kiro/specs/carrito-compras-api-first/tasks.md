@@ -7,7 +7,7 @@
     - Si Jackson 3 diera problemas, plan B: Jackson 2 en Boot 4, documentado en notas
     - Observable: build verde con la generación activa y el mojo `validate` de los YAML en el build
     - _Boundary: build/codegen_
-  - [ ] 1.2 Crear `src/main/resources/static/swagger-ui.html` (SwaggerUIBundle con `urls` a `/contratos/carrito-api.yml` y `/contratos/compras-api.yml`, `persistAuthorization: true`) y añadir `permitAll` en `SecurityConfig` para `GET /swagger-ui.html`, `/webjars/**` y `/contratos/**`; extender `FrontEstaticoIntegracionTest`
+  - [x] 1.2 Crear `src/main/resources/static/swagger-ui.html` (SwaggerUIBundle con `urls` a `/contratos/carrito-api.yml` y `/contratos/compras-api.yml`, `persistAuthorization: true`) y añadir `permitAll` en `SecurityConfig` para `GET /swagger-ui.html`, `/webjars/**` y `/contratos/**`; extender `FrontEstaticoIntegracionTest`
     - Observable: sin token se cargan la página, los YAML y los recursos del webjar; con token el Try it out envía `Authorization`
     - _Boundary: estático/compartido_
     - _Depends: 1.1_

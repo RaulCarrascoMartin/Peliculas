@@ -29,8 +29,39 @@ class FrontEstaticoIntegracionTest {
     }
 
     @Test
+    void laPaginaDelContratoYLosYmlSonPublicos() throws Exception {
+        mvc.perform(get("/swagger-ui.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("SwaggerUIBundle")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/contratos/carrito-api.yml")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/contratos/compras-api.yml")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("persistAuthorization: true")));
+        mvc.perform(get("/contratos/carrito-api.yml")).andExpect(status().isOk());
+        mvc.perform(get("/contratos/compras-api.yml")).andExpect(status().isOk());
+    }
+
+    @Test
+    void losRecursosDelWebjarDeSwaggerSonPublicos() throws Exception {
+        mvc.perform(get("/webjars/swagger-ui/" + versionWebjarSwaggerUi() + "/swagger-ui-bundle.js"))
+                .andExpect(status().isOk());
+        mvc.perform(get("/webjars/swagger-ui/" + versionWebjarSwaggerUi() + "/swagger-ui.css"))
+                .andExpect(status().isOk());
+    }
+
+    private String versionWebjarSwaggerUi() {
+        var props = new java.util.Properties();
+        try (var is = getClass().getResourceAsStream("/META-INF/maven/org.webjars/swagger-ui/pom.properties")) {
+            props.load(is);
+            return props.getProperty("version");
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("No se encontró la versión del webjar swagger-ui", e);
+        }
+    }
+
+    @Test
     void otrasRutasSiguenProtegidas() throws Exception {
         mvc.perform(get("/api/usuarios/me/favoritas")).andExpect(status().isUnauthorized());
         mvc.perform(get("/otra-cosa.js")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/carrito")).andExpect(status().isUnauthorized());
     }
 }
