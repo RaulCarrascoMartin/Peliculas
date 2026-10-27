@@ -33,7 +33,7 @@
   - _Boundary: pelicula_
   - _Requisitos: 1.1, 1.2, 1.3, 1.4, 1.5
 
-- [ ] 4. Módulo `carrito`
+- [x] 4. Módulo `carrito`
   - [x] 4.1 (P) Entidades `Carrito` (usuarioId único, `@Version`) y `LineaCarrito` (única por (carritoId, peliculaId)), `CarritoRepository` y doble de repositorio en memoria; añadir `carrito` y `compra` a `MODULOS` en `ArquitecturaTest`
     - Observable: ArchUnit pasa con los dos módulos declarados; restricciones únicas y `@Version` presentes en las entidades
     - _Boundary: carrito/domain_
