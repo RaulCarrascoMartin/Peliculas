@@ -14,15 +14,15 @@
   - _Requisitos: 8.2, 8.3_
 
 - [ ] 2. Contratos OpenAPI definitivos
-  - [ ] 2.1 (P) Escribir `static/contratos/carrito-api.yml`: paths `/api/carrito`, `/api/carrito/lineas`, `/api/carrito/lineas/{peliculaId}`; schemas `Carrito`, `LineaCarrito`, `AnadirLinea`, `ErrorRespuesta`; `bearerAuth` global; ejemplos por error
+  - [x] 2.1 (P) Escribir `static/contratos/carrito-api.yml`: paths `/api/carrito`, `/api/carrito/lineas`, `/api/carrito/lineas/{peliculaId}`; schemas `Carrito`, `LineaCarrito`, `AnadirLinea`, `ErrorRespuesta`; `bearerAuth` global; ejemplos por error
     - Observable: el YAML valida (mojo validate) y al regenerar aparecen `CarritoRestApi` y los DTO en `org.example.carrito.web.api/.dto`
     - _Boundary: contrato carrito_
     - _Depends: 1.1_
-  - [ ] 2.2 (P) Escribir `static/contratos/compras-api.yml`: paths `/api/compras`, `/api/compras/{compraId}`; schemas `Compra` (fecha `date-time`, estado enum `COMPRADA`, lineas, total), `LineaCompra`, `ErrorRespuesta` idéntico al de carrito; `bearerAuth`; ejemplos
+  - [x] 2.2 (P) Escribir `static/contratos/compras-api.yml`: paths `/api/compras`, `/api/compras/{compraId}`; schemas `Compra` (fecha `date-time`, estado enum `COMPRADA`, lineas, total), `LineaCompra`, `ErrorRespuesta` idéntico al de carrito; `bearerAuth`; ejemplos
     - Observable: al regenerar aparecen `ComprasRestApi` y los DTO en `org.example.compra.web.api/.dto`
     - _Boundary: contrato compra_
     - _Depends: 1.1_
-  - [ ] 2.3 Regenerar todo, compilar y verificar la servida estática de `/contratos/*.yml` (`mvn compile` + validate)
+  - [x] 2.3 Regenerar todo, compilar y verificar la servida estática de `/contratos/*.yml` (`mvn compile` + validate)
     - _Depends: 2.1, 2.2_
   - _Requisitos: 8.1, 8.4, 8.5
 

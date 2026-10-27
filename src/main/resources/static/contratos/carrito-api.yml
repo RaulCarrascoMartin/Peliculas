@@ -1,19 +1,93 @@
 openapi: 3.0.3
 info:
-  title: Contrato carrito (temporal, spike 1.1)
-  version: 0.0.0-spike
+  title: Contrato carrito
+  description: Endpoints del carrito del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
+  version: 1.0.0
+tags:
+  - name: CarritoRest
+    description: Carrito del usuario actual
 paths:
   /api/carrito:
     get:
       tags: [CarritoRest]
       operationId: verCarrito
+      summary: Carrito actual (vacio con total cero si aun no existe)
       responses:
         '200':
-          description: Línea de prueba
+          description: Carrito del usuario, con el precio vivo de cada pelicula y el total
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Carrito'
+              example:
+                lineas:
+                  - peliculaId: 1
+                    titulo: Alien
+                    precio: 12.99
+                total: 12.99
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+    delete:
+      tags: [CarritoRest]
+      operationId: vaciarCarrito
+      summary: Vacia el carrito (idempotente)
+      responses:
+        '204':
+          description: Carrito vaciado
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+  /api/carrito/lineas:
+    post:
+      tags: [CarritoRest]
+      operationId: anadirLinea
+      summary: Anade una pelicula al carrito (crea el carrito si es la primera)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnadirLinea'
+            example:
+              peliculaId: 1
+      responses:
+        '201':
+          description: Linea anadida, con el precio actual de la pelicula
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LineaCarrito'
+              example:
+                peliculaId: 1
+                titulo: Alien
+                precio: 12.99
+        '400':
+          $ref: '#/components/responses/CuerpoInvalido'
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+        '404':
+          $ref: '#/components/responses/PeliculaInexistente'
+        '409':
+          $ref: '#/components/responses/ConflictoLinea'
+  /api/carrito/lineas/{peliculaId}:
+    delete:
+      tags: [CarritoRest]
+      operationId: quitarLinea
+      summary: Quita una pelicula del carrito
+      parameters:
+        - name: peliculaId
+          in: path
+          required: true
+          description: Identificador de la pelicula a quitar
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Linea eliminada
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+        '404':
+          $ref: '#/components/responses/LineaInexistente'
 security:
   - bearerAuth: []
 components:
@@ -22,13 +96,112 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    NoAutenticado:
+      description: Sin token o token invalido o caducado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            estado: 401
+            mensaje: No autenticado
+            errores: {}
+    CuerpoInvalido:
+      description: El cuerpo no incluye un identificador de pelicula valido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            estado: 400
+            mensaje: Peticion invalida
+            errores:
+              peliculaId: debe ser positivo
+    PeliculaInexistente:
+      description: La pelicula no existe en el catalogo
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            estado: 404
+            mensaje: Recurso no encontrado
+            errores: {}
+    LineaInexistente:
+      description: La pelicula no esta en el carrito del usuario
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            estado: 404
+            mensaje: Recurso no encontrado
+            errores: {}
+    ConflictoLinea:
+      description: La pelicula ya esta en el carrito o no tiene precio y no es comprable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            estado: 409
+            mensaje: La pelicula ya esta en el carrito
+            errores: {}
   schemas:
+    Carrito:
+      type: object
+      description: Carrito del usuario; el precio de cada linea es el precio vivo de la pelicula
+      required: [lineas, total]
+      properties:
+        lineas:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineaCarrito'
+        total:
+          type: number
+          description: Suma de los precios actuales de las lineas; cero si el carrito esta vacio
+          multipleOf: 0.01
+          example: 12.99
     LineaCarrito:
       type: object
-      required: [peliculaId, titulo]
+      required: [peliculaId, titulo, precio]
       properties:
         peliculaId:
           type: integer
           format: int64
+          example: 1
         titulo:
           type: string
+          example: Alien
+        precio:
+          type: number
+          description: Precio vivo de la pelicula al consultar
+          multipleOf: 0.01
+          example: 12.99
+    AnadirLinea:
+      type: object
+      required: [peliculaId]
+      properties:
+        peliculaId:
+          type: integer
+          format: int64
+          example: 1
+    ErrorRespuesta:
+      type: object
+      description: Cuerpo uniforme de error, con el mismo formato que produce el GlobalExceptionHandler
+      required: [estado, mensaje, errores]
+      properties:
+        estado:
+          type: integer
+          example: 400
+        mensaje:
+          type: string
+          example: Peticion invalida
+        errores:
+          type: object
+          description: Mapa de errores por campo; vacio salvo en errores de validacion
+          additionalProperties:
+            type: string
+          example:
+            peliculaId: debe ser positivo

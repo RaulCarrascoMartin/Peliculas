@@ -1,19 +1,75 @@
 openapi: 3.0.3
 info:
-  title: Contrato compras (temporal, spike 1.1)
-  version: 0.0.0-spike
+  title: Contrato compras
+  description: Historial y finalizacion de compras del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
+  version: 1.0.0
+tags:
+  - name: ComprasRest
+    description: Compras del usuario actual
 paths:
   /api/compras:
-    get:
+    post:
       tags: [ComprasRest]
-      operationId: listarCompras
+      operationId: finalizarCompra
+      summary: Finaliza la compra con el contenido del carrito (checkout atomico)
       responses:
-        '200':
-          description: Línea de compra de prueba
+        '201':
+          description: Compra creada con snapshot de titulo y precio de cada pelicula; el carrito queda vacio
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LineaCompra'
+                $ref: '#/components/schemas/Compra'
+              example:
+                id: 10
+                fecha: '2026-10-27T10:15:30'
+                estado: COMPRADA
+                lineas:
+                  - peliculaId: 1
+                    titulo: Alien
+                    precioUnitario: 12.99
+                total: 12.99
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+        '409':
+          $ref: '#/components/responses/ConflictoCompra'
+    get:
+      tags: [ComprasRest]
+      operationId: listarCompras
+      summary: Historial de compras del usuario, ordenado por fecha descendente
+      responses:
+        '200':
+          description: Compras del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Compra'
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+  /api/compras/{compraId}:
+    get:
+      tags: [ComprasRest]
+      operationId: detalleCompra
+      summary: Detalle de una compra propia (una ajena o inexistente responde 404, nunca 403)
+      parameters:
+        - name: compraId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: La compra, si es del usuario actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compra'
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+        '404':
+          $ref: '#/components/responses/CompraInexistente'
 security:
   - bearerAuth: []
 components:
@@ -22,13 +78,96 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    NoAutenticado:
+      description: Sin token o token invalido o caducado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            estado: 401
+            mensaje: No autenticado
+            errores: {}
+    ConflictoCompra:
+      description: Carrito vacio, alguna pelicula desaparecida o sin precio, o compra simultanea doble
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            estado: 409
+            mensaje: El carrito esta vacio
+            errores: {}
+    CompraInexistente:
+      description: La compra no existe o no es del usuario actual
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            estado: 404
+            mensaje: Recurso no encontrado
+            errores: {}
   schemas:
+    Compra:
+      type: object
+      description: Compra completada; titulo y precio de sus lineas son snapshot, no cambian aunque la pelicula se edite o elimine
+      required: [id, fecha, estado, lineas, total]
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        fecha:
+          type: string
+          format: date-time
+          description: Momento de la compra (zona del servidor)
+          example: '2026-10-27T10:15:30'
+        estado:
+          type: string
+          enum: [COMPRADA]
+          example: COMPRADA
+        lineas:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineaCompra'
+        total:
+          type: number
+          description: Suma de los precios unitarios; se almacena con la compra
+          multipleOf: 0.01
+          example: 12.99
     LineaCompra:
       type: object
-      required: [peliculaId, titulo]
+      required: [peliculaId, titulo, precioUnitario]
       properties:
         peliculaId:
           type: integer
           format: int64
+          example: 1
         titulo:
           type: string
+          description: Titulo de la pelicula en el momento de la compra (snapshot)
+          example: Alien
+        precioUnitario:
+          type: number
+          description: Precio de la pelicula en el momento de la compra (snapshot)
+          multipleOf: 0.01
+          example: 12.99
+    ErrorRespuesta:
+      type: object
+      description: Cuerpo uniforme de error, con el mismo formato que produce el GlobalExceptionHandler
+      required: [estado, mensaje, errores]
+      properties:
+        estado:
+          type: integer
+          example: 409
+        mensaje:
+          type: string
+          example: El carrito esta vacio
+        errores:
+          type: object
+          description: Mapa de errores por campo; vacio salvo en errores de validacion
+          additionalProperties:
+            type: string
+          example: {}
