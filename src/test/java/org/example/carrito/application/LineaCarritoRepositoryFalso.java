@@ -3,6 +3,7 @@ package org.example.carrito.application;
 import org.example.carrito.domain.LineaCarrito;
 import org.example.carrito.domain.LineaCarritoRepository;
 import org.example.compartido.RepositorioEnMemoria;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Comparator;
 import java.util.List;
@@ -19,7 +20,7 @@ public class LineaCarritoRepositoryFalso extends RepositorioEnMemoria<LineaCarri
                     l.getCarritoId().equals(entidad.getCarritoId())
                             && l.getPeliculaId().equals(entidad.getPeliculaId()));
             if (repetida) {
-                throw new org.springframework.dao.DataIntegrityViolationException("Línea repetida");
+                throw new DataIntegrityViolationException("Línea repetida");
             }
         }
         return super.save(entidad);
@@ -53,5 +54,10 @@ public class LineaCarritoRepositoryFalso extends RepositorioEnMemoria<LineaCarri
     @Override
     public void deleteByPeliculaId(Long peliculaId) {
         entidades.values().removeIf(l -> l.getPeliculaId().equals(peliculaId));
+    }
+
+    @Override
+    public void deleteByCarritoId(Long carritoId) {
+        entidades.values().removeIf(l -> l.getCarritoId().equals(carritoId));
     }
 }

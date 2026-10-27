@@ -14,4 +14,7 @@ public interface LineaCarritoRepository extends JpaRepository<LineaCarrito, Long
 
     /** Limpieza al eliminar una película del catálogo: quita su línea de todos los carritos. */
     void deleteByPeliculaId(Long peliculaId);
+
+    /** Vaciado del carrito: quita todas sus líneas. */
+    void deleteByCarritoId(Long carritoId);
 }

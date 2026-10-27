@@ -81,4 +81,17 @@ class LineaCarritoRepositoryTest {
         assertTrue(repositorio.findByCarritoIdAndPeliculaId(1L, 10L).isEmpty());
         assertTrue(repositorio.findByCarritoIdAndPeliculaId(2L, 10L).isEmpty());
     }
+
+    @Test
+    void borraTodasLasLineasDeUnCarrito() {
+        repositorio.saveAndFlush(linea(1L, 10L));
+        repositorio.saveAndFlush(linea(1L, 11L));
+        repositorio.saveAndFlush(linea(2L, 12L));
+
+        repositorio.deleteByCarritoId(1L);
+
+        assertEquals(1, repositorio.count());
+        assertTrue(repositorio.findByCarritoIdAndPeliculaId(1L, 10L).isEmpty());
+        assertTrue(repositorio.findByCarritoIdAndPeliculaId(1L, 11L).isEmpty());
+    }
 }
