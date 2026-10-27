@@ -22,15 +22,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PeliculaControllerIntegracionTest {
 
     private static final String ALIEN = """
-            {"titulo":"Alien","anio":1979,"genero":"Ciencia ficción","director":"Ridley Scott"}""";
+            {"titulo":"Alien","anio":1979,"genero":"Ciencia ficción","director":"Ridley Scott","precio":12.99}""";
     private static final String ALIENS = """
-            {"titulo":"Aliens","anio":1986,"genero":"Acción","director":"James Cameron"}""";
+            {"titulo":"Aliens","anio":1986,"genero":"Acción","director":"James Cameron","precio":9.99}""";
 
     @Autowired
     private MockMvc mvc;
 
     @Autowired
     private JwtTokens tokens;
+
+    @Autowired
+    private org.example.pelicula.domain.PeliculaRepository repo;
 
     private String admin() {
         return "Bearer " + tokens.emitir(1L, "ADMIN");
@@ -190,7 +193,7 @@ class PeliculaControllerIntegracionTest {
     }
 
     private static String conAnio(int anio) {
-        return "{\"titulo\":\"Alien\",\"anio\":" + anio + ",\"genero\":\"Drama\",\"director\":\"X\"}";
+        return "{\"titulo\":\"Alien\",\"anio\":" + anio + ",\"genero\":\"Drama\",\"director\":\"X\",\"precio\":12.99}";
     }
 
     @Test
@@ -226,7 +229,7 @@ class PeliculaControllerIntegracionTest {
 
     private static String json(String titulo, int anio, String genero, String director) {
         return "{\"titulo\":\"" + titulo + "\",\"anio\":" + anio + ",\"genero\":\"" + genero
-                + "\",\"director\":\"" + director + "\"}";
+                + "\",\"director\":\"" + director + "\",\"precio\":12.99}";
     }
 
     @Test
@@ -249,5 +252,74 @@ class PeliculaControllerIntegracionTest {
     @Test
     void unAnioNoNumericoDevuelve400() throws Exception {
         mvc.perform(get("/api/peliculas").param("anio", "abc")).andExpect(status().isBadRequest());
+    }
+
+    // ---------- precio (Requisito 1 de carrito-compras-api-first) ----------
+
+    @Test
+    void crearConPrecioValidoLoGuardaYLoDevuelve() throws Exception {
+        String cuerpo = enviar(post("/api/peliculas"), admin(), ALIEN)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.precio").value(12.99))
+                .andReturn().getResponse().getContentAsString();
+        long id = ((Number) JsonPath.read(cuerpo, "$.id")).longValue();
+
+        mvc.perform(get("/api/peliculas/" + id)).andExpect(jsonPath("$.precio").value(12.99));
+        mvc.perform(get("/api/peliculas").param("titulo", "Alien"))
+                .andExpect(jsonPath("$.content[0].precio").value(12.99));
+    }
+
+    @Test
+    void crearOEditarSinPrecioDevuelve400() throws Exception {
+        enviar(post("/api/peliculas"), admin(), "{\"titulo\":\"Alien\",\"anio\":1979,\"genero\":\"Drama\",\"director\":\"X\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.precio").isNotEmpty());
+    }
+
+    @Test
+    void crearConPrecioCeroONegativoDevuelve400() throws Exception {
+        enviar(post("/api/peliculas"), admin(), conPrecio("0")).andExpect(status().isBadRequest());
+        enviar(post("/api/peliculas"), admin(), conPrecio("-5.00")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void crearConMasDeDosDecimalesDevuelve400() throws Exception {
+        enviar(post("/api/peliculas"), admin(), conPrecio("12.999")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void crearConParteEnteraDeMasDeOchoDigitosDevuelve400() throws Exception {
+        enviar(post("/api/peliculas"), admin(), conPrecio("99999999.99")).andExpect(status().isCreated());
+        enviar(post("/api/peliculas"), admin(), conPrecio("100000000")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void editarActualizaElPrecio() throws Exception {
+        long id = crearComoAdmin(ALIEN);
+
+        enviar(put("/api/peliculas/" + id), admin(),
+                "{\"titulo\":\"Alien\",\"anio\":1979,\"genero\":\"Ciencia ficción\",\"director\":\"Ridley Scott\",\"precio\":19.99}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.precio").value(19.99));
+
+        mvc.perform(get("/api/peliculas/" + id)).andExpect(jsonPath("$.precio").value(19.99));
+    }
+
+    @Test
+    void unaPeliculaPreexistenteSinPrecioEnLaApiEsNoComprable() throws Exception {
+        // Simula una película creada antes de este cambio: se guarda sin precio por otra vía
+        var preexistente = new org.example.pelicula.domain.Pelicula();
+        preexistente.setTitulo("Muda");
+        preexistente.setAnio(1950);
+        preexistente.setGenero("Drama");
+        preexistente.setDirector("Alguien");
+        repo.save(preexistente);
+
+        mvc.perform(get("/api/peliculas/" + preexistente.getId()))
+                .andExpect(jsonPath("$.precio").isEmpty());
+    }
+
+    private static String conPrecio(String precio) {
+        return "{\"titulo\":\"Alien\",\"anio\":1979,\"genero\":\"Drama\",\"director\":\"X\",\"precio\":" + precio + "}";
     }
 }

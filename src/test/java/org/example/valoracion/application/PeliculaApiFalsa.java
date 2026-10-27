@@ -41,7 +41,8 @@ public class PeliculaApiFalsa implements PeliculaApi {
     @Override
     public List<PeliculaResumen> resumenes(Collection<Long> ids) {
         return ids.stream().filter(this::existe).sorted()
-                .map(id -> new PeliculaResumen(id, "Película " + id, 2000, "Drama", "Director", medias.get(id)))
+                .map(id -> new PeliculaResumen(id, "Película " + id, 2000, "Drama", "Director",
+                        new java.math.BigDecimal("12.99"), medias.get(id)))
                 .toList();
     }
 }

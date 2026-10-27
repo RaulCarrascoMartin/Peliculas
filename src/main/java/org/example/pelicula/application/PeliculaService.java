@@ -51,6 +51,7 @@ public class PeliculaService implements PeliculaApi {
         existente.setAnio(datos.getAnio());
         existente.setGenero(datos.getGenero());
         existente.setDirector(datos.getDirector());
+        existente.setPrecio(datos.getPrecio());
         return peliculas.save(existente);
     }
 
@@ -81,7 +82,7 @@ public class PeliculaService implements PeliculaApi {
         return peliculas.findAllById(ids).stream()
                 .sorted(Comparator.comparing(Pelicula::getId))
                 .map(p -> new PeliculaResumen(p.getId(), p.getTitulo(), p.getAnio(), p.getGenero(),
-                        p.getDirector(), p.getValoracionMedia()))
+                        p.getDirector(), p.getPrecio(), p.getValoracionMedia()))
                 .toList();
     }
 

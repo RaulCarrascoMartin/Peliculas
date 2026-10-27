@@ -7,9 +7,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -190,22 +193,49 @@ class PeliculaServiceTest {
 
     @Test
     void resumenesDevuelveLasPeliculasPedidasOrdenadasPorIdIgnorandoLasInexistentes() {
-        servicio.crear(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott"));
-        servicio.crear(pelicula("Aliens", 1986, "Ciencia ficción", "James Cameron"));
-        servicio.crear(pelicula("Gladiator", 2000, "Drama", "Ridley Scott"));
-        servicio.actualizarValoracionMedia(3L, 4.5);
+        var alien = pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott");
+        alien.setPrecio(new BigDecimal("12.99"));
+        var gladiator = pelicula("Gladiator", 2000, "Drama", "Ridley Scott");
+        // preexistente sin precio
+        servicio.crear(alien);
+        var gladiatorId = servicio.crear(gladiator).getId();
+        servicio.actualizarValoracionMedia(gladiatorId, 4.5);
 
-        var resumenes = servicio.resumenes(java.util.List.of(3L, 1L, 99L));
+        var resumenes = servicio.resumenes(java.util.List.of(gladiatorId, alien.getId().longValue(), 99L));
 
         assertEquals(2, resumenes.size());
-        assertEquals(1L, resumenes.get(0).id());
         assertEquals("Alien", resumenes.get(0).titulo());
-        assertEquals(3L, resumenes.get(1).id());
+        assertEquals(new BigDecimal("12.99"), resumenes.get(0).precio());
         assertEquals("Gladiator", resumenes.get(1).titulo());
         assertEquals(2000, resumenes.get(1).anio());
         assertEquals("Drama", resumenes.get(1).genero());
         assertEquals("Ridley Scott", resumenes.get(1).director());
+        assertNull(resumenes.get(1).precio());
         assertEquals(4.5, resumenes.get(1).valoracionMedia());
+    }
+
+    @Test
+    void guardarElPrecioAlCrear() {
+        var alien = pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott");
+        alien.setPrecio(new BigDecimal("12.99"));
+
+        var id = servicio.crear(alien).getId();
+
+        assertEquals(new BigDecimal("12.99"), servicio.detalle(id).getPrecio());
+    }
+
+    @Test
+    void editarActualizaElPrecioYConservaElResto() {
+        var alien = pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott");
+        alien.setPrecio(new BigDecimal("12.99"));
+        var id = servicio.crear(alien).getId();
+
+        var aliens = pelicula("Alien (remasterizada)", 1979, "Ciencia ficción", "Ridley Scott");
+        aliens.setPrecio(new BigDecimal("19.99"));
+        var editada = servicio.editar(id, aliens);
+
+        assertEquals(new BigDecimal("19.99"), editada.getPrecio());
+        assertEquals(new BigDecimal("19.99"), repositorio.findById(id).orElseThrow().getPrecio());
     }
 
     @Test

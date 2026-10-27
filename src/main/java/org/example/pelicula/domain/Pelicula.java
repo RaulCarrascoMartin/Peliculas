@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "peliculas")
@@ -26,6 +27,18 @@ public class Pelicula {
 
     /** Media de las puntuaciones; {@code null} mientras no haya valoraciones. */
     private Double valoracionMedia;
+
+    /** Precio de venta; {@code null} solo en películas preexistentes a este campo, que no son comprables. */
+    @Column(precision = 10, scale = 2)
+    private BigDecimal precio;
+
+    public BigDecimal getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(BigDecimal precio) {
+        this.precio = precio;
+    }
 
     public Long getId() {
         return id;

@@ -26,7 +26,7 @@
     - _Depends: 2.1, 2.2_
   - _Requisitos: 8.1, 8.4, 8.5
 
-- [ ] 3. (P) Precio en el catálogo (módulo `pelicula`)
+- [x] 3. (P) Precio en el catálogo (módulo `pelicula`)
   - Añadir `precio` `BigDecimal` (`DECIMAL(10,2)`) a `Pelicula`; validaciones `@NotNull @Positive @Digits(integer=8, fraction=2)` en `PeliculaRequest`; `precio` en `PeliculaResponse` y en `PeliculaResumen` (raíz del módulo; null en películas preexistentes)
   - Pruebas unitarias del servicio e integración del controlador actualizadas
   - Observable: crear/editar sin precio o con precio ≤ 0 o con más de 2 decimales → 400; con precio válido se persiste y aparece en listado y detalle; `PeliculaResumen` expone `precio` para carrito/compra
@@ -77,6 +77,7 @@
   - _Requisitos: 7.1, 7.2, 7.3
 
 ## Implementation Notes
+- 3: Feature Flag Protocol no aplicable (campo de esquema + Bean Validation no conmutables); RED = fallo de compilación + 12 tests rojos en `valoracion` (literales sin precio → 400), corregidos añadiendo `"precio":12.99` a los literales de `ValoracionControllerIntegracionTest`, `MarcaPeliculaControllerIntegracionTest` y `BorradoPeliculaIntegracionTest`. `PeliculaResumen` ahora (id, titulo, anio, genero, director, precio, valoracionMedia) — actualizar constructores posicionales en dobles. · 1.2, 1.5: la mitad "no comprable" (409) se verifica en 4.3/5.2.
 - 1.1: el `spring` 7.26.0 ignora `useRecords` (solo lo implementa `aspnet-fastendpoints`); el soporte real se fusionó para 7.27.0 (PRs #25200..#25351, no liberado aún). Decisión revisada con el usuario (DTO generados como records): se usa `openapi-generator-maven-plugin 7.27.0-SNAPSHOT` con `pluginRepository` de snapshots de Central (https://central.sonatype.com/repository/maven-snapshots/). Al liberarse 7.27.0, fijar la versión y quitar el repositorio de snapshots. Jackson 3 (useJackson3) compila y serializa bien en Boot 4.1; no hizo falta el plan B. Warnings silenciados con `generateJsonIncludeAnnotations=false` y `generateJsonSetterNullsAnnotations=false`. Interfaz spike `SpikeMapeosGeneradosTest` (org.example.carrito) hay que eliminarla al llegar 4.4/5.3.
 - 1.1: Maven no está en el PATH: `/opt/homebrew/Cellar/apache-maven-3.9.6/bin/mvn`.
 - 1.2: si el alias sin versión del webjar no resuelve, usar la ruta con versión concreta en `swagger-ui.html`; `persistAuthorization` evita re-loguear en cada prueba manual.

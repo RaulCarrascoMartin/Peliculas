@@ -46,7 +46,7 @@ class MarcaPeliculaControllerIntegracionTest {
     }
 
     private long crearPelicula(String titulo) throws Exception {
-        String json = "{\"titulo\":\"" + titulo + "\",\"anio\":1979,\"genero\":\"Drama\",\"director\":\"X\"}";
+        String json = "{\"titulo\":\"" + titulo + "\",\"anio\":1979,\"genero\":\"Drama\",\"director\":\"X\",\"precio\":12.99}";
         String cuerpo = mvc.perform(post("/api/peliculas").header("Authorization", bearer(1, "ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();

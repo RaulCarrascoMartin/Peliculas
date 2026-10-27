@@ -1,6 +1,7 @@
 package org.example.pelicula.web;
 
 import org.example.pelicula.domain.Pelicula;
+import java.math.BigDecimal;
 
 public record PeliculaResponse(
         Long id,
@@ -8,10 +9,12 @@ public record PeliculaResponse(
         Integer anio,
         String genero,
         String director,
+        BigDecimal precio,
         Double valoracionMedia) {
 
     public static PeliculaResponse desde(Pelicula pelicula) {
         return new PeliculaResponse(pelicula.getId(), pelicula.getTitulo(), pelicula.getAnio(),
-                pelicula.getGenero(), pelicula.getDirector(), pelicula.getValoracionMedia());
+                pelicula.getGenero(), pelicula.getDirector(), pelicula.getPrecio(),
+                pelicula.getValoracionMedia());
     }
 }

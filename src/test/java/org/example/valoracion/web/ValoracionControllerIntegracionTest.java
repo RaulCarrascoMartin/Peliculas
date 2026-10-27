@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ValoracionControllerIntegracionTest {
 
     private static final String ALIEN = """
-            {"titulo":"Alien","anio":1979,"genero":"Ciencia ficción","director":"Ridley Scott"}""";
+            {"titulo":"Alien","anio":1979,"genero":"Ciencia ficción","director":"Ridley Scott","precio":12.99}""";
 
     @Autowired
     private MockMvc mvc;
