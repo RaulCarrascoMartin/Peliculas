@@ -3,8 +3,8 @@
 Monolito modular: una única aplicación desplegable dividida en módulos por funcionalidad. Sin puertos ni adaptadores; dentro de cada módulo, el dominio no depende de nada del módulo y el resto de capas dependen de él.
 
 ```
-src/main/java/org/example/
-├── Main.java                     # punto de entrada (Spring Boot)
+src/main/java/shop/
+├── ShopApplication.java          # punto de entrada (Spring Boot)
 ├── <modulo>/                     # pelicula, valoracion, autenticacion, carrito, compra
 │   ├── api/                      # parte pública: lo único que ven otros módulos
 │   │   └── XxxApi y records públicos (p. ej. PeliculaApi, PeliculaResumen, CarritoApi)
@@ -17,7 +17,7 @@ src/main/java/org/example/
 └── compartido/                   # utilidades comunes; no depende de ningún módulo
     ├── error/                    # RecursoNoEncontradoException, ConflictoException, ValidacionException, ErrorRespuesta, GlobalExceptionHandler
     └── seguridad/                # SecurityConfig, JwtFilter, JwtTokens, DatosToken, UsuarioActual
-src/test/java/org/example/        # mismas rutas que main, más pruebas de arquitectura
+src/test/java/shop/        # mismas rutas que main, más pruebas de arquitectura
 .kiro/specs/                      # specs (requirements, design, tasks)
 ```
 
@@ -63,5 +63,5 @@ src/test/java/org/example/        # mismas rutas que main, más pruebas de arqui
 - En pruebas unitarias no se usa `SecurityContextHolder`: se escribe un doble a mano de `UsuarioActual`.
 
 ## Pruebas
-- Las pruebas de ArchUnit viven en `src/test/java/org/example/arquitectura/` y validan estas reglas.
+- Las pruebas de ArchUnit viven en `src/test/java/shop/arquitectura/` y validan estas reglas.
 - Las pruebas de `domain` y `usecase` son unitarias, sin levantar el contexto de Spring; usan dobles escritos a mano.
