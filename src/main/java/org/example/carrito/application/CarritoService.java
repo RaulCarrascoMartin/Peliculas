@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -112,8 +113,12 @@ public class CarritoService implements CarritoApi {
     @Override
     @Transactional
     public void vaciar(Long usuarioId) {
-        carritos.findByUsuarioId(usuarioId)
-                .ifPresent(carrito -> lineas.deleteByCarritoId(carrito.getId()));
+        carritos.findByUsuarioId(usuarioId).ifPresent(carrito -> {
+            lineas.deleteByCarritoId(carrito.getId());
+            // Cambio real de la entidad: fuerza el update con @Version, que hace perder al segundo checkout simultáneo.
+            carrito.setActualizadoEn(LocalDateTime.now());
+            carritos.save(carrito);
+        });
     }
 
     @Override

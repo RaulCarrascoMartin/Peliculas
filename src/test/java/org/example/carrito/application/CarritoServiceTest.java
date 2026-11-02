@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -177,6 +179,17 @@ class CarritoServiceTest {
 
         servicio.vaciar(2L); // sin carrito tampoco falla
         assertEquals(0, lineas.count());
+    }
+
+    @Test
+    void vaciarMarcaElCarritoComoModificadoParaQueElBloqueoOptimistaDetecteElDobleCheckout() {
+        crearPelicula(10L, PRECIO);
+        servicio.anadir(1L, 10L);
+        assertNull(carritos.findByUsuarioId(1L).orElseThrow().getActualizadoEn());
+
+        servicio.vaciar(1L);
+
+        assertNotNull(carritos.findByUsuarioId(1L).orElseThrow().getActualizadoEn());
     }
 
     @Test

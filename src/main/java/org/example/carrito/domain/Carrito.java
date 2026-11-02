@@ -9,6 +9,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "carritos", uniqueConstraints = @UniqueConstraint(columnNames = "usuarioId"))
 public class Carrito {
@@ -23,6 +25,13 @@ public class Carrito {
     /** Bloqueo optimista: dos checkouts del mismo carrito, el segundo falla al hacer flush (409). */
     @Version
     private Long version;
+
+    /**
+     * Última vez que se vació el carrito. Cambiarlo hace que la entidad esté sucia y que Hibernate emita
+     * {@code update ... where version=?}: sin un cambio real, vaciar (que solo borra líneas) nunca tocaría
+     * la versión y dos checkouts simultáneos no chocarían.
+     */
+    private LocalDateTime actualizadoEn;
 
     public Long getId() {
         return id;
@@ -46,5 +55,13 @@ public class Carrito {
 
     public void setVersion(Long version) {
         this.version = version;
+    }
+
+    public LocalDateTime getActualizadoEn() {
+        return actualizadoEn;
+    }
+
+    public void setActualizadoEn(LocalDateTime actualizadoEn) {
+        this.actualizadoEn = actualizadoEn;
     }
 }
