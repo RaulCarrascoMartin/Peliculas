@@ -1,6 +1,6 @@
 package org.example.valoracion.internal.usecase;
 
-import org.example.compartido.UsuarioActual;
+import org.example.compartido.seguridad.UsuarioActual;
 import org.example.pelicula.api.PeliculaApi;
 import org.example.pelicula.api.PeliculaResumen;
 import org.example.valoracion.internal.domain.MarcaPelicula;
@@ -17,8 +17,7 @@ public class ListarPeliculasMarcadas {
     private final PeliculaApi peliculas;
     private final UsuarioActual usuarioActual;
 
-    public ListarPeliculasMarcadas(MarcaPeliculaRepository marcas, PeliculaApi peliculas,
-                                   UsuarioActual usuarioActual) {
+    public ListarPeliculasMarcadas(MarcaPeliculaRepository marcas, PeliculaApi peliculas, UsuarioActual usuarioActual) {
         this.marcas = marcas;
         this.peliculas = peliculas;
         this.usuarioActual = usuarioActual;

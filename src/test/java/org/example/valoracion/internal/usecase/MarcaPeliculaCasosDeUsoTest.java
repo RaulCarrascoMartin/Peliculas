@@ -1,7 +1,7 @@
 package org.example.valoracion.internal.usecase;
 
-import org.example.compartido.RecursoNoEncontradoException;
-import org.example.compartido.UsuarioActualFalso;
+import org.example.compartido.error.RecursoNoEncontradoException;
+import org.example.compartido.seguridad.UsuarioActualFalso;
 import org.example.pelicula.api.PeliculaResumen;
 import org.example.valoracion.internal.domain.TipoMarca;
 import org.junit.jupiter.api.BeforeEach;

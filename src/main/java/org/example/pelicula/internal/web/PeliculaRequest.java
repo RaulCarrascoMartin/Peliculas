@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Positive;
-import org.example.pelicula.internal.domain.Pelicula;
+import org.example.pelicula.internal.usecase.DatosPelicula;
 
 import java.math.BigDecimal;
 
@@ -17,13 +17,7 @@ public record PeliculaRequest(
         @NotBlank String director,
         @NotNull @Positive @Digits(integer = 8, fraction = 2) BigDecimal precio) {
 
-    public Pelicula aEntidad() {
-        Pelicula pelicula = new Pelicula();
-        pelicula.setTitulo(titulo);
-        pelicula.setAnio(anio);
-        pelicula.setGenero(genero);
-        pelicula.setDirector(director);
-        pelicula.setPrecio(precio);
-        return pelicula;
+    public DatosPelicula aDatos() {
+        return new DatosPelicula(titulo, anio, genero, director, precio);
     }
 }

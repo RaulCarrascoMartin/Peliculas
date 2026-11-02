@@ -1,4 +1,4 @@
-package org.example.compartido;
+package org.example.compartido.error;
 
 public class ConflictoException extends RuntimeException {
     public ConflictoException(String mensaje) {

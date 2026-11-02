@@ -1,4 +1,4 @@
-package org.example.compartido;
+package org.example.compartido.seguridad;
 
 import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,8 @@
 package org.example.autenticacion.internal.usecase;
 
 import org.example.autenticacion.internal.domain.Rol;
-import org.example.compartido.ConflictoException;
-import org.example.compartido.JwtTokens;
+import org.example.compartido.error.ConflictoException;
+import org.example.compartido.seguridad.JwtTokens;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -38,10 +38,11 @@ class AutenticacionCasosDeUsoTest {
     void registraUnUsuarioConRolUsuarioYContrasenaCifrada() {
         var usuario = registrar.ejecutar("ana@correo.com", "Secreta123");
 
-        assertEquals(Rol.USUARIO, usuario.getRol());
-        assertNotEquals("Secreta123", usuario.getContrasena());
-        assertTrue(codificador.matches("Secreta123", usuario.getContrasena()));
-        assertEquals(usuario, repositorio.findByEmail("ana@correo.com").orElseThrow());
+        var guardado = repositorio.findByEmail("ana@correo.com").orElseThrow();
+        assertEquals("USUARIO", usuario.rol());
+        assertEquals(guardado.getId(), usuario.id());
+        assertNotEquals("Secreta123", guardado.getContrasena());
+        assertTrue(codificador.matches("Secreta123", guardado.getContrasena()));
     }
 
     @Test
@@ -58,14 +59,14 @@ class AutenticacionCasosDeUsoTest {
 
         var datos = tokens.leer(iniciarSesion.ejecutar("ana@correo.com", "Secreta123"));
 
-        assertEquals(usuario.getId(), datos.id());
+        assertEquals(usuario.id(), datos.id());
         assertEquals("USUARIO", datos.rol());
     }
 
     @Test
     void loginDeUnAdministradorLlevaSuRol() {
-        var admin = registrar.ejecutar("root@correo.com", "Secreta123");
-        admin.setRol(Rol.ADMIN);
+        registrar.ejecutar("root@correo.com", "Secreta123");
+        repositorio.findByEmail("root@correo.com").orElseThrow().setRol(Rol.ADMIN);
 
         assertEquals("ADMIN", tokens.leer(iniciarSesion.ejecutar("root@correo.com", "Secreta123")).rol());
     }

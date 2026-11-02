@@ -1,6 +1,6 @@
 package org.example.valoracion.internal.usecase;
 
-import org.example.compartido.RecursoNoEncontradoException;
+import org.example.compartido.error.RecursoNoEncontradoException;
 import org.example.pelicula.api.PeliculaApi;
 import org.example.pelicula.api.PeliculaResumen;
 

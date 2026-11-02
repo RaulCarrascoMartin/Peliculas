@@ -1,4 +1,4 @@
-package org.example.compartido;
+package org.example.compartido.seguridad;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

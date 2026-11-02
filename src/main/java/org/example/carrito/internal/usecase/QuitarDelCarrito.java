@@ -4,7 +4,7 @@ import org.example.carrito.internal.domain.Carrito;
 import org.example.carrito.internal.domain.CarritoRepository;
 import org.example.carrito.internal.domain.LineaCarrito;
 import org.example.carrito.internal.domain.LineaCarritoRepository;
-import org.example.compartido.RecursoNoEncontradoException;
+import org.example.compartido.error.RecursoNoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

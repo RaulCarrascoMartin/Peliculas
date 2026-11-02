@@ -1,7 +1,7 @@
 package org.example.carrito.internal.web;
 
 import com.jayway.jsonpath.JsonPath;
-import org.example.compartido.JwtTokens;
+import org.example.compartido.seguridad.JwtTokens;
 import org.example.pelicula.internal.domain.Pelicula;
 import org.example.pelicula.internal.domain.PeliculaRepository;
 import org.junit.jupiter.api.AfterEach;

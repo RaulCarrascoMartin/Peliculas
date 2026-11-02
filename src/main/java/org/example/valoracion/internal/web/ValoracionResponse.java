@@ -1,6 +1,6 @@
 package org.example.valoracion.internal.web;
 
-import org.example.valoracion.internal.domain.Valoracion;
+import org.example.valoracion.internal.usecase.ValoracionVista;
 
 public record ValoracionResponse(
         Long id,
@@ -8,8 +8,7 @@ public record ValoracionResponse(
         Integer puntuacion,
         String comentario) {
 
-    public static ValoracionResponse desde(Valoracion valoracion) {
-        return new ValoracionResponse(valoracion.getId(), valoracion.getPeliculaId(),
-                valoracion.getPuntuacion(), valoracion.getComentario());
+    public static ValoracionResponse desde(ValoracionVista v) {
+        return new ValoracionResponse(v.id(), v.peliculaId(), v.puntuacion(), v.comentario());
     }
 }

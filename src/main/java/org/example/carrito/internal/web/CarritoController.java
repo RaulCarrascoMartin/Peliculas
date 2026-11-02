@@ -10,7 +10,7 @@ import org.example.carrito.internal.web.api.CarritoRestApi;
 import org.example.carrito.internal.web.dto.AnadirLinea;
 import org.example.carrito.internal.web.dto.Carrito;
 import org.example.carrito.internal.web.dto.LineaCarrito;
-import org.example.compartido.UsuarioActual;
+import org.example.compartido.seguridad.UsuarioActual;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;

@@ -1,7 +1,7 @@
 package org.example.compra.internal.usecase;
 
-import org.example.compartido.ConflictoException;
-import org.example.compartido.RecursoNoEncontradoException;
+import org.example.compartido.error.ConflictoException;
+import org.example.compartido.error.RecursoNoEncontradoException;
 import org.example.compra.internal.domain.Compra;
 import org.example.compra.internal.domain.EstadoCompra;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,15 +50,15 @@ class CompraCasosDeUsoTest {
 
         CompraVista vista = finalizar.ejecutar(1L);
 
-        assertNotNull(vista.compra().getId());
-        assertEquals(1L, vista.compra().getUsuarioId());
-        assertEquals(EstadoCompra.COMPRADA, vista.compra().getEstado());
-        assertNotNull(vista.compra().getFecha());
-        assertEquals(new BigDecimal("17.48"), vista.compra().getTotal());
-        assertEquals(List.of("Matrix", "Origen"), vista.lineas().stream().map(l -> l.getTitulo()).toList());
+        assertNotNull(vista.id());
+        assertEquals(1L, vista.usuarioId());
+        assertEquals(EstadoCompra.COMPRADA.name(), vista.estado());
+        assertNotNull(vista.fecha());
+        assertEquals(new BigDecimal("17.48"), vista.total());
+        assertEquals(List.of("Matrix", "Origen"), vista.lineas().stream().map(l -> l.titulo()).toList());
         assertEquals(List.of(new BigDecimal("7.99"), new BigDecimal("9.49")),
-                vista.lineas().stream().map(l -> l.getPrecioUnitario()).toList());
-        assertEquals(vista.compra().getId(), vista.lineas().get(0).getCompraId());
+                vista.lineas().stream().map(l -> l.precioUnitario()).toList());
+        assertEquals(2, lineas.findByCompraIdOrderById(vista.id()).size());
         assertEquals(2, lineas.count());
         assertTrue(carritos.peliculasEnCarrito(1L).isEmpty());
     }
@@ -70,23 +70,23 @@ class CompraCasosDeUsoTest {
 
         CompraVista vista = finalizar.ejecutar(1L);
 
-        assertEquals(new BigDecimal("10.00"), vista.lineas().get(0).getPrecioUnitario());
-        assertEquals(new BigDecimal("19.49"), vista.compra().getTotal());
+        assertEquals(new BigDecimal("10.00"), vista.lineas().get(0).precioUnitario());
+        assertEquals(new BigDecimal("19.49"), vista.total());
     }
 
     @Test
     void laCompraConservaTituloYPrecioAunqueLaPeliculaSeEditeOSeElimine() {
         carritoConDosPeliculas(1L);
-        Long compraId = finalizar.ejecutar(1L).compra().getId();
+        Long compraId = finalizar.ejecutar(1L).id();
 
         peliculas.cambiarPrecio(10L, new BigDecimal("99.00"));
         peliculas.cambiarTitulo(10L, "Matrix Reloaded");
         peliculas.eliminar(11L);
 
         CompraVista detalle = obtener.ejecutar(1L, compraId);
-        assertEquals(new BigDecimal("17.48"), detalle.compra().getTotal());
-        assertEquals(List.of("Matrix", "Origen"), detalle.lineas().stream().map(l -> l.getTitulo()).toList());
-        assertEquals(new BigDecimal("7.99"), detalle.lineas().get(0).getPrecioUnitario());
+        assertEquals(new BigDecimal("17.48"), detalle.total());
+        assertEquals(List.of("Matrix", "Origen"), detalle.lineas().stream().map(l -> l.titulo()).toList());
+        assertEquals(new BigDecimal("7.99"), detalle.lineas().get(0).precioUnitario());
     }
 
     @Test
@@ -132,7 +132,7 @@ class CompraCasosDeUsoTest {
         Long reciente = compraDirecta(1L, LocalDateTime.of(2026, 11, 3, 9, 0)).getId();
         compraDirecta(2L, LocalDateTime.of(2026, 11, 4, 9, 0));
 
-        List<Long> ids = listar.ejecutar(1L).stream().map(v -> v.compra().getId()).toList();
+        List<Long> ids = listar.ejecutar(1L).stream().map(v -> v.id()).toList();
 
         assertEquals(List.of(reciente, antigua), ids);
     }
@@ -140,18 +140,18 @@ class CompraCasosDeUsoTest {
     @Test
     void detalleDevuelveLaCompraPropiaConSusLineas() {
         carritoConDosPeliculas(1L);
-        Long compraId = finalizar.ejecutar(1L).compra().getId();
+        Long compraId = finalizar.ejecutar(1L).id();
 
         CompraVista detalle = obtener.ejecutar(1L, compraId);
 
-        assertEquals(compraId, detalle.compra().getId());
+        assertEquals(compraId, detalle.id());
         assertEquals(2, detalle.lineas().size());
     }
 
     @Test
     void detalleDeUnaCompraAjenaOInexistenteEsNoEncontrado() {
         carritoConDosPeliculas(2L);
-        Long ajena = finalizar.ejecutar(2L).compra().getId();
+        Long ajena = finalizar.ejecutar(2L).id();
 
         assertThrows(RecursoNoEncontradoException.class, () -> obtener.ejecutar(1L, ajena));
         assertThrows(RecursoNoEncontradoException.class, () -> obtener.ejecutar(1L, 999L));

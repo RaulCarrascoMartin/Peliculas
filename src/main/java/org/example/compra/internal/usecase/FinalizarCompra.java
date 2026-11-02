@@ -1,7 +1,7 @@
 package org.example.compra.internal.usecase;
 
 import org.example.carrito.api.CarritoApi;
-import org.example.compartido.ConflictoException;
+import org.example.compartido.error.ConflictoException;
 import org.example.compra.internal.domain.Compra;
 import org.example.compra.internal.domain.CompraRepository;
 import org.example.compra.internal.domain.EstadoCompra;
@@ -32,8 +32,7 @@ public class FinalizarCompra {
     private final CarritoApi carritos;
     private final PeliculaApi peliculas;
 
-    public FinalizarCompra(CompraRepository compras, LineaCompraRepository lineas,
-                           CarritoApi carritos, PeliculaApi peliculas) {
+    public FinalizarCompra(CompraRepository compras, LineaCompraRepository lineas, CarritoApi carritos, PeliculaApi peliculas) {
         this.compras = compras;
         this.lineas = lineas;
         this.carritos = carritos;
@@ -78,7 +77,7 @@ public class FinalizarCompra {
                 .map(resumen -> lineas.save(snapshot(guardada.getId(), resumen)))
                 .toList();
         carritos.vaciar(usuarioId);
-        return new CompraVista(guardada, congeladas);
+        return VistaDeCompra.de(guardada, congeladas);
     }
 
     private static PeliculaResumen comprable(PeliculaResumen resumen, Long peliculaId) {

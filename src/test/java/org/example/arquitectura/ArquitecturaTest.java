@@ -41,6 +41,28 @@ class ArquitecturaTest {
     }
 
     @Test
+    void losDtosDeLosCasosDeUsoSonRecords() {
+        classes().that().resideInAPackage(BASE + "..internal.usecase..")
+                .and().haveSimpleNameEndingWith("Vista").or().haveSimpleName("DatosPelicula")
+                .should().beAssignableTo(Record.class)
+                .allowEmptyShould(true)
+                .check(clases);
+        classes().that().resideInAPackage(BASE + ".*.api")
+                .and().areNotInterfaces()
+                .should().beAssignableTo(Record.class)
+                .allowEmptyShould(true)
+                .check(clases);
+    }
+
+    @Test
+    void laWebNuncaVeLasEntidades() {
+        noClasses().that().resideInAPackage(BASE + "..internal.web..")
+                .should().dependOnClassesThat().areAnnotatedWith(jakarta.persistence.Entity.class)
+                .allowEmptyShould(true)
+                .check(clases);
+    }
+
+    @Test
     void losModulosSoloSeAccedenPorSuApi() {
         for (String modulo : MODULOS) {
             String propio = BASE + "." + modulo;

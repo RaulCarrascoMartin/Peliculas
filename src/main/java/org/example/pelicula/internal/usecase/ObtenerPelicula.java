@@ -1,7 +1,7 @@
 package org.example.pelicula.internal.usecase;
 
-import org.example.compartido.RecursoNoEncontradoException;
-import org.example.pelicula.internal.domain.Pelicula;
+import org.example.compartido.error.RecursoNoEncontradoException;
+import org.example.pelicula.api.PeliculaResumen;
 import org.example.pelicula.internal.domain.PeliculaRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +14,9 @@ public class ObtenerPelicula {
         this.peliculas = peliculas;
     }
 
-    public Pelicula ejecutar(Long id) {
+    public PeliculaResumen ejecutar(Long id) {
         return peliculas.findById(id)
+                .map(ResumenDePelicula::de)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Película " + id + " no encontrada"));
     }
 }

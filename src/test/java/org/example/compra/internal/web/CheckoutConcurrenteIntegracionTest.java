@@ -1,7 +1,7 @@
 package org.example.compra.internal.web;
 
 import com.jayway.jsonpath.JsonPath;
-import org.example.compartido.JwtTokens;
+import org.example.compartido.seguridad.JwtTokens;
 import org.example.compra.internal.domain.Compra;
 import org.example.compra.internal.domain.CompraRepository;
 import org.example.compra.internal.domain.LineaCompraRepository;

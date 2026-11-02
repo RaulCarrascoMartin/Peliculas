@@ -1,4 +1,4 @@
-package org.example.compartido;
+package org.example.compartido.seguridad;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;

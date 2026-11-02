@@ -1,4 +1,4 @@
-package org.example.compartido;
+package org.example.compartido.error;
 
 /** Regla de validación de negocio incumplida; se traduce a 400. */
 public class ValidacionException extends RuntimeException {

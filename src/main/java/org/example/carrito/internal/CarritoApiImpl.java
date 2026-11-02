@@ -11,7 +11,8 @@ import java.util.List;
 
 /** Punto de salida del módulo: implementa {@link CarritoApi} para {@code compra}. */
 @Service
-public class CarritoApiImpl implements CarritoApi {
+public class CarritoApiImpl
+        implements CarritoApi {
 
     private final CarritoRepository carritos;
     private final LineaCarritoRepository lineas;

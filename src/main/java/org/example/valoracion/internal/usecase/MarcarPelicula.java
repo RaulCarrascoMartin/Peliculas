@@ -1,7 +1,7 @@
 package org.example.valoracion.internal.usecase;
 
-import org.example.compartido.RecursoNoEncontradoException;
-import org.example.compartido.UsuarioActual;
+import org.example.compartido.error.RecursoNoEncontradoException;
+import org.example.compartido.seguridad.UsuarioActual;
 import org.example.pelicula.api.PeliculaApi;
 import org.example.valoracion.internal.domain.MarcaPelicula;
 import org.example.valoracion.internal.domain.MarcaPeliculaRepository;

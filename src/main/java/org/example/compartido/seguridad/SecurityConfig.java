@@ -1,4 +1,4 @@
-package org.example.compartido;
+package org.example.compartido.seguridad;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;

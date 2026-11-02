@@ -1,8 +1,8 @@
 package org.example.valoracion.internal.usecase;
 
-import org.example.compartido.RecursoNoEncontradoException;
-import org.example.compartido.UsuarioActual;
-import org.example.compartido.ValidacionException;
+import org.example.compartido.error.RecursoNoEncontradoException;
+import org.example.compartido.seguridad.UsuarioActual;
+import org.example.compartido.error.ValidacionException;
 import org.example.pelicula.api.PeliculaApi;
 import org.example.valoracion.internal.domain.Valoracion;
 import org.example.valoracion.internal.domain.ValoracionRepository;
@@ -11,9 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ValorarPelicula {
-
-    static final int PUNTUACION_MINIMA = 1;
-    static final int PUNTUACION_MAXIMA = 5;
 
     private final ValoracionRepository valoraciones;
     private final PeliculaApi peliculas;
@@ -25,9 +22,12 @@ public class ValorarPelicula {
         this.usuarioActual = usuarioActual;
     }
 
+    static final int PUNTUACION_MINIMA = 1;
+    static final int PUNTUACION_MAXIMA = 5;
+
     /** Crea la valoración del usuario actual o, si ya existía para esa película, la actualiza. */
     @Transactional
-    public Valoracion ejecutar(Long peliculaId, int puntuacion, String comentario) {
+    public ValoracionVista ejecutar(Long peliculaId, int puntuacion, String comentario) {
         if (puntuacion < PUNTUACION_MINIMA || puntuacion > PUNTUACION_MAXIMA) {
             throw new ValidacionException(
                     "La puntuación debe estar entre " + PUNTUACION_MINIMA + " y " + PUNTUACION_MAXIMA);
@@ -47,7 +47,8 @@ public class ValorarPelicula {
         valoracion.setComentario(comentario);
         Valoracion guardada = valoraciones.save(valoracion);
         recalcularMedia(peliculaId);
-        return guardada;
+        return new ValoracionVista(guardada.getId(), guardada.getPeliculaId(), guardada.getPuntuacion(),
+                guardada.getComentario());
     }
 
     private void recalcularMedia(Long peliculaId) {

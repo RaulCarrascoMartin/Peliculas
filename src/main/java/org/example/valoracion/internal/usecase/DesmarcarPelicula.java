@@ -1,6 +1,6 @@
 package org.example.valoracion.internal.usecase;
 
-import org.example.compartido.UsuarioActual;
+import org.example.compartido.seguridad.UsuarioActual;
 import org.example.valoracion.internal.domain.MarcaPeliculaRepository;
 import org.example.valoracion.internal.domain.TipoMarca;
 import org.springframework.stereotype.Service;

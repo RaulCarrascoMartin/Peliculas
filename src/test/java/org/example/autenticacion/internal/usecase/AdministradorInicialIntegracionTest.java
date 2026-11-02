@@ -1,6 +1,6 @@
 package org.example.autenticacion.internal.usecase;
 
-import org.example.compartido.JwtTokens;
+import org.example.compartido.seguridad.JwtTokens;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

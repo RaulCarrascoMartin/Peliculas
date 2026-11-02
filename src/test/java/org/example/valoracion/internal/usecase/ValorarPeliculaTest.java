@@ -1,8 +1,8 @@
 package org.example.valoracion.internal.usecase;
 
-import org.example.compartido.RecursoNoEncontradoException;
-import org.example.compartido.UsuarioActualFalso;
-import org.example.compartido.ValidacionException;
+import org.example.compartido.error.RecursoNoEncontradoException;
+import org.example.compartido.seguridad.UsuarioActualFalso;
+import org.example.compartido.error.ValidacionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,11 +33,11 @@ class ValorarPeliculaTest {
     void guardaLaValoracionDelUsuarioActual() {
         var valoracion = servicioDe(1L).ejecutar(PELICULA, 4, "Muy buena");
 
-        assertNotNull(valoracion.getId());
-        assertEquals(1L, valoracion.getUsuarioId());
-        assertEquals(PELICULA, valoracion.getPeliculaId());
-        assertEquals(4, valoracion.getPuntuacion());
-        assertEquals("Muy buena", valoracion.getComentario());
+        assertNotNull(valoracion.id());
+        assertEquals(1L, repositorio.findAll().get(0).getUsuarioId());
+        assertEquals(PELICULA, valoracion.peliculaId());
+        assertEquals(4, valoracion.puntuacion());
+        assertEquals("Muy buena", valoracion.comentario());
         assertEquals(1, repositorio.count());
     }
 
@@ -65,7 +65,7 @@ class ValorarPeliculaTest {
 
         var segunda = servicioDe(1L).ejecutar(PELICULA, 5, "Mejor al verla otra vez");
 
-        assertEquals(primera.getId(), segunda.getId());
+        assertEquals(primera.id(), segunda.id());
         assertEquals(1, repositorio.count());
         assertEquals(5, repositorio.findAll().get(0).getPuntuacion());
         assertEquals("Mejor al verla otra vez", repositorio.findAll().get(0).getComentario());
@@ -146,7 +146,7 @@ class ValorarPeliculaTest {
 
         var actualizada = servicioDe(1L).ejecutar(PELICULA, 4, null);
 
-        assertNull(actualizada.getComentario());
+        assertNull(actualizada.comentario());
         assertNull(repositorio.findAll().get(0).getComentario());
     }
 

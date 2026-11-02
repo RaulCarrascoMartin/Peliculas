@@ -1,12 +1,15 @@
 package org.example.compra.internal.usecase;
 
-import org.example.compra.internal.domain.Compra;
-import org.example.compra.internal.domain.LineaCompra;
-
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
-/** Una compra con sus líneas congeladas, tal como la devuelve los casos de uso de compra. */
+/** Una compra con sus líneas congeladas, tal como la devuelven los casos de uso de compra. */
 public record CompraVista(
-        Compra compra,
-        List<LineaCompra> lineas) {
+        Long id,
+        Long usuarioId,
+        LocalDateTime fecha,
+        BigDecimal total,
+        String estado,
+        List<LineaCompraVista> lineas) {
 }

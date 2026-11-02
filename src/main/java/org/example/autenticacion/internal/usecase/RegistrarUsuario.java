@@ -3,7 +3,7 @@ package org.example.autenticacion.internal.usecase;
 import org.example.autenticacion.internal.domain.Rol;
 import org.example.autenticacion.internal.domain.Usuario;
 import org.example.autenticacion.internal.domain.UsuarioRepository;
-import org.example.compartido.ConflictoException;
+import org.example.compartido.error.ConflictoException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ public class RegistrarUsuario {
         this.codificador = codificador;
     }
 
-    public Usuario ejecutar(String email, String contrasena) {
+    public UsuarioVista ejecutar(String email, String contrasena) {
         if (usuarios.existsByEmail(email)) {
             throw new ConflictoException("El email ya está registrado");
         }
@@ -26,6 +26,7 @@ public class RegistrarUsuario {
         usuario.setEmail(email);
         usuario.setContrasena(codificador.encode(contrasena));
         usuario.setRol(Rol.USUARIO);
-        return usuarios.save(usuario);
+        Usuario guardado = usuarios.save(usuario);
+        return new UsuarioVista(guardado.getId(), guardado.getEmail(), guardado.getRol().name());
     }
 }

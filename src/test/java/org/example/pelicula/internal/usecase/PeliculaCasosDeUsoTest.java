@@ -1,9 +1,8 @@
 package org.example.pelicula.internal.usecase;
 
-import org.example.compartido.RecursoNoEncontradoException;
-import org.example.pelicula.api.PeliculaEliminada;
+import org.example.compartido.error.RecursoNoEncontradoException;
+import org.example.pelicula.api.PeliculaResumen;
 import org.example.pelicula.internal.PeliculaApiImpl;
-import org.example.pelicula.internal.domain.Pelicula;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +25,6 @@ class PeliculaCasosDeUsoTest {
     private EditarPelicula editar;
     private EliminarPelicula eliminar;
     private PeliculaApiImpl api;
-    private final java.util.List<Object> eventos = new java.util.ArrayList<>();
 
     @BeforeEach
     void preparar() {
@@ -34,33 +32,32 @@ class PeliculaCasosDeUsoTest {
         crear = new CrearPelicula(repositorio);
         obtener = new ObtenerPelicula(repositorio);
         buscar = new BuscarPeliculas(repositorio);
-        editar = new EditarPelicula(repositorio, obtener);
-        eliminar = new EliminarPelicula(repositorio, eventos::add);
-        api = new PeliculaApiImpl(repositorio, obtener);
+        editar = new EditarPelicula(repositorio);
+        eliminar = new EliminarPelicula(repositorio);
+        api = new PeliculaApiImpl(repositorio);
     }
 
-    private static Pelicula pelicula(String titulo, int anio, String genero, String director) {
-        var pelicula = new Pelicula();
-        pelicula.setTitulo(titulo);
-        pelicula.setAnio(anio);
-        pelicula.setGenero(genero);
-        pelicula.setDirector(director);
-        return pelicula;
+    private static DatosPelicula pelicula(String titulo, int anio, String genero, String director) {
+        return new DatosPelicula(titulo, anio, genero, director, null);
+    }
+
+    private static DatosPelicula conPrecio(DatosPelicula datos, String precio) {
+        return new DatosPelicula(datos.titulo(), datos.anio(), datos.genero(), datos.director(), new BigDecimal(precio));
     }
 
     @Test
     void creaLaPeliculaYDevuelveElIdAsignado() {
         var creada = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott"));
 
-        assertNotNull(creada.getId());
-        assertEquals("Alien", repositorio.findById(creada.getId()).orElseThrow().getTitulo());
+        assertNotNull(creada.id());
+        assertEquals("Alien", repositorio.findById(creada.id()).orElseThrow().getTitulo());
     }
 
     @Test
     void devuelveElDetalleDeUnaPeliculaExistente() {
-        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).getId();
+        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).id();
 
-        assertEquals("Alien", obtener.ejecutar(id).getTitulo());
+        assertEquals("Alien", obtener.ejecutar(id).titulo());
     }
 
     @Test
@@ -71,17 +68,17 @@ class PeliculaCasosDeUsoTest {
     @Test
     void editaLosDatosYConservaLaValoracionMedia() {
         var original = pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott");
-        original.setValoracionMedia(4.5);
-        var id = crear.ejecutar(original).getId();
+        var id = crear.ejecutar(original).id();
+        api.actualizarValoracionMedia(id, 4.5);
 
         var editada = editar.ejecutar(id, pelicula("Aliens", 1986, "Acción", "James Cameron"));
 
-        assertEquals(id, editada.getId());
-        assertEquals("Aliens", editada.getTitulo());
-        assertEquals(1986, editada.getAnio());
-        assertEquals("Acción", editada.getGenero());
-        assertEquals("James Cameron", editada.getDirector());
-        assertEquals(4.5, editada.getValoracionMedia());
+        assertEquals(id, editada.id());
+        assertEquals("Aliens", editada.titulo());
+        assertEquals(1986, editada.anio());
+        assertEquals("Acción", editada.genero());
+        assertEquals("James Cameron", editada.director());
+        assertEquals(4.5, editada.valoracionMedia());
         assertEquals(1, repositorio.count());
     }
 
@@ -94,7 +91,7 @@ class PeliculaCasosDeUsoTest {
 
     @Test
     void eliminaLaPelicula() {
-        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).getId();
+        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).id();
 
         eliminar.ejecutar(id);
 
@@ -108,7 +105,7 @@ class PeliculaCasosDeUsoTest {
 
     @Test
     void existeDevuelveTrueSoloParaPeliculasCreadas() {
-        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).getId();
+        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).id();
 
         assertTrue(api.existe(id));
         assertFalse(api.existe(99L));
@@ -116,7 +113,7 @@ class PeliculaCasosDeUsoTest {
 
     @Test
     void actualizaLaValoracionMediaSinTocarElResto() {
-        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).getId();
+        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).id();
 
         api.actualizarValoracionMedia(id, 3.5);
 
@@ -141,7 +138,7 @@ class PeliculaCasosDeUsoTest {
         assertEquals(5, pagina.getTotalElements());
         assertEquals(3, pagina.getTotalPages());
         assertEquals(2, pagina.getContent().size());
-        assertEquals("Película 3", pagina.getContent().get(0).getTitulo());
+        assertEquals("Película 3", pagina.getContent().get(0).titulo());
     }
 
     @Test
@@ -158,7 +155,7 @@ class PeliculaCasosDeUsoTest {
 
     private java.util.List<String> titulos(String titulo, String genero, Integer anio, String director) {
         return buscar.ejecutar(titulo, genero, anio, director, PageRequest.of(0, 10)).getContent().stream()
-                .map(Pelicula::getTitulo).toList();
+                .map(PeliculaResumen::titulo).toList();
     }
 
     @Test
@@ -204,15 +201,14 @@ class PeliculaCasosDeUsoTest {
 
     @Test
     void resumenesDevuelveLasPeliculasPedidasOrdenadasPorIdIgnorandoLasInexistentes() {
-        var alien = pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott");
-        alien.setPrecio(new BigDecimal("12.99"));
+        var alien = conPrecio(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott"), "12.99");
         var gladiator = pelicula("Gladiator", 2000, "Drama", "Ridley Scott");
         // preexistente sin precio
-        crear.ejecutar(alien);
-        var gladiatorId = crear.ejecutar(gladiator).getId();
+        var alienId = crear.ejecutar(alien).id();
+        var gladiatorId = crear.ejecutar(gladiator).id();
         api.actualizarValoracionMedia(gladiatorId, 4.5);
 
-        var resumenes = api.resumenes(java.util.List.of(gladiatorId, alien.getId().longValue(), 99L));
+        var resumenes = api.resumenes(java.util.List.of(gladiatorId, alienId, 99L));
 
         assertEquals(2, resumenes.size());
         assertEquals("Alien", resumenes.get(0).titulo());
@@ -227,46 +223,27 @@ class PeliculaCasosDeUsoTest {
 
     @Test
     void guardarElPrecioAlCrear() {
-        var alien = pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott");
-        alien.setPrecio(new BigDecimal("12.99"));
+        var alien = conPrecio(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott"), "12.99");
 
-        var id = crear.ejecutar(alien).getId();
+        var id = crear.ejecutar(alien).id();
 
-        assertEquals(new BigDecimal("12.99"), obtener.ejecutar(id).getPrecio());
+        assertEquals(new BigDecimal("12.99"), obtener.ejecutar(id).precio());
     }
 
     @Test
     void editarActualizaElPrecioYConservaElResto() {
-        var alien = pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott");
-        alien.setPrecio(new BigDecimal("12.99"));
-        var id = crear.ejecutar(alien).getId();
+        var alien = conPrecio(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott"), "12.99");
+        var id = crear.ejecutar(alien).id();
 
-        var aliens = pelicula("Alien (remasterizada)", 1979, "Ciencia ficción", "Ridley Scott");
-        aliens.setPrecio(new BigDecimal("19.99"));
+        var aliens = conPrecio(pelicula("Alien (remasterizada)", 1979, "Ciencia ficción", "Ridley Scott"), "19.99");
         var editada = editar.ejecutar(id, aliens);
 
-        assertEquals(new BigDecimal("19.99"), editada.getPrecio());
+        assertEquals(new BigDecimal("19.99"), editada.precio());
         assertEquals(new BigDecimal("19.99"), repositorio.findById(id).orElseThrow().getPrecio());
     }
 
     @Test
     void resumenesSinIdsDevuelveListaVacia() {
         assertTrue(api.resumenes(java.util.List.of()).isEmpty());
-    }
-
-    @Test
-    void eliminarPublicaElEventoPeliculaEliminada() {
-        var id = crear.ejecutar(pelicula("Alien", 1979, "Ciencia ficción", "Ridley Scott")).getId();
-
-        eliminar.ejecutar(id);
-
-        assertEquals(java.util.List.of(new PeliculaEliminada(id)), eventos);
-    }
-
-    @Test
-    void eliminarUnaPeliculaInexistenteNoPublicaNingunEvento() {
-        assertThrows(RecursoNoEncontradoException.class, () -> eliminar.ejecutar(99L));
-
-        assertTrue(eventos.isEmpty());
     }
 }

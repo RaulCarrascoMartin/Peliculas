@@ -1,4 +1,4 @@
-package org.example.compartido;
+package org.example.compartido.error;
 
 import java.util.Map;
 

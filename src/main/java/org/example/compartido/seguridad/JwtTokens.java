@@ -1,4 +1,4 @@
-package org.example.compartido;
+package org.example.compartido.seguridad;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -43,7 +43,12 @@ public class JwtTokens {
 
     /** Valida firma y caducidad; lanza {@link io.jsonwebtoken.JwtException} si el token no es válido. */
     public DatosToken leer(String token) {
-        Claims claims = Jwts.parser().verifyWith(clave).build().parseSignedClaims(token).getPayload();
+        Claims claims = Jwts.parser()
+                .verifyWith(clave)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
         return new DatosToken(Long.valueOf(claims.getSubject()), claims.get(CLAIM_ROL, String.class));
     }
 }

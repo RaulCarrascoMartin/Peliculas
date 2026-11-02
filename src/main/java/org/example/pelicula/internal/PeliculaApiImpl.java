@@ -1,10 +1,10 @@
 package org.example.pelicula.internal;
 
+import org.example.compartido.error.RecursoNoEncontradoException;
 import org.example.pelicula.api.PeliculaApi;
 import org.example.pelicula.api.PeliculaResumen;
 import org.example.pelicula.internal.domain.Pelicula;
 import org.example.pelicula.internal.domain.PeliculaRepository;
-import org.example.pelicula.internal.usecase.ObtenerPelicula;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -16,11 +16,9 @@ import java.util.List;
 public class PeliculaApiImpl implements PeliculaApi {
 
     private final PeliculaRepository peliculas;
-    private final ObtenerPelicula obtener;
 
-    public PeliculaApiImpl(PeliculaRepository peliculas, ObtenerPelicula obtener) {
+    public PeliculaApiImpl(PeliculaRepository peliculas) {
         this.peliculas = peliculas;
-        this.obtener = obtener;
     }
 
     @Override
@@ -30,7 +28,8 @@ public class PeliculaApiImpl implements PeliculaApi {
 
     @Override
     public void actualizarValoracionMedia(Long id, Double media) {
-        Pelicula pelicula = obtener.ejecutar(id);
+        Pelicula pelicula = peliculas.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Película " + id + " no encontrada"));
         pelicula.setValoracionMedia(media);
         peliculas.save(pelicula);
     }

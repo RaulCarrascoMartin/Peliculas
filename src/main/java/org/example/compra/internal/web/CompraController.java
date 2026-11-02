@@ -1,11 +1,11 @@
 package org.example.compra.internal.web;
 
-import org.example.compartido.UsuarioActual;
+import org.example.compartido.seguridad.UsuarioActual;
 import org.example.compra.internal.usecase.FinalizarCompra;
+import org.example.compra.internal.usecase.LineaCompraVista;
 import org.example.compra.internal.usecase.ListarCompras;
 import org.example.compra.internal.usecase.ObtenerCompra;
 import org.example.compra.internal.usecase.CompraVista;
-import org.example.compra.internal.domain.LineaCompra;
 import org.example.compra.internal.web.api.ComprasRestApi;
 import org.example.compra.internal.web.dto.Compra;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,18 +46,17 @@ public class CompraController implements ComprasRestApi {
         return mapear(obtener.ejecutar(usuarioActual.id(), compraId));
     }
 
-    /** La entidad guarda {@code LocalDateTime} (hora del servidor); el contrato publica {@code date-time} con desfase. */
+    /** El record guarda {@code LocalDateTime} (hora del servidor); el contrato publica {@code date-time} con desfase. */
     private static Compra mapear(CompraVista vista) {
-        org.example.compra.internal.domain.Compra compra = vista.compra();
         List<org.example.compra.internal.web.dto.LineaCompra> lineas = vista.lineas().stream()
                 .map(CompraController::mapear)
                 .toList();
-        return new Compra(compra.getId(), compra.getFecha().atZone(ZoneId.systemDefault()).toOffsetDateTime(),
-                Compra.EstadoEnum.valueOf(compra.getEstado().name()), lineas, compra.getTotal());
+        return new Compra(vista.id(), vista.fecha().atZone(ZoneId.systemDefault()).toOffsetDateTime(),
+                Compra.EstadoEnum.valueOf(vista.estado()), lineas, vista.total());
     }
 
-    private static org.example.compra.internal.web.dto.LineaCompra mapear(LineaCompra linea) {
-        return new org.example.compra.internal.web.dto.LineaCompra(linea.getPeliculaId(), linea.getTitulo(),
-                linea.getPrecioUnitario());
+    private static org.example.compra.internal.web.dto.LineaCompra mapear(LineaCompraVista linea) {
+        return new org.example.compra.internal.web.dto.LineaCompra(linea.peliculaId(), linea.titulo(),
+                linea.precioUnitario());
     }
 }

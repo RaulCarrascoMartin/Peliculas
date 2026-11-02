@@ -1,6 +1,6 @@
 package org.example.pelicula.internal.usecase;
 
-import org.example.pelicula.internal.domain.Pelicula;
+import org.example.pelicula.api.PeliculaResumen;
 import org.example.pelicula.internal.domain.PeliculaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +16,10 @@ public class BuscarPeliculas {
     }
 
     /** Lista paginada; los filtros nulos o en blanco se ignoran y los indicados se combinan con "y". */
-    public Page<Pelicula> ejecutar(String titulo, String genero, Integer anio, String director, Pageable paginacion) {
-        return peliculas.buscar(texto(titulo), texto(genero), anio, texto(director), paginacion);
+    public Page<PeliculaResumen> ejecutar(String titulo, String genero, Integer anio, String director,
+                                          Pageable paginacion) {
+        return peliculas.buscar(texto(titulo), texto(genero), anio, texto(director), paginacion)
+                .map(ResumenDePelicula::de);
     }
 
     private static String texto(String valor) {

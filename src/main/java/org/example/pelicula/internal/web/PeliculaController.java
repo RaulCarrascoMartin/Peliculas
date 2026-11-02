@@ -62,13 +62,13 @@ public class PeliculaController {
     @PreAuthorize(SOLO_ADMIN)
     @ResponseStatus(HttpStatus.CREATED)
     public PeliculaResponse crear(@Valid @RequestBody PeliculaRequest peticion) {
-        return PeliculaResponse.desde(crear.ejecutar(peticion.aEntidad()));
+        return PeliculaResponse.desde(crear.ejecutar(peticion.aDatos()));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize(SOLO_ADMIN)
     public PeliculaResponse editar(@PathVariable Long id, @Valid @RequestBody PeliculaRequest peticion) {
-        return PeliculaResponse.desde(editar.ejecutar(id, peticion.aEntidad()));
+        return PeliculaResponse.desde(editar.ejecutar(id, peticion.aDatos()));
     }
 
     @DeleteMapping("/{id}")

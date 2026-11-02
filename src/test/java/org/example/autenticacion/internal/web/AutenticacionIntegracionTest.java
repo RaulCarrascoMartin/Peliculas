@@ -3,7 +3,7 @@ package org.example.autenticacion.internal.web;
 import com.jayway.jsonpath.JsonPath;
 import org.example.autenticacion.internal.domain.Rol;
 import org.example.autenticacion.internal.domain.UsuarioRepository;
-import org.example.compartido.JwtTokens;
+import org.example.compartido.seguridad.JwtTokens;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,7 +1,7 @@
 package org.example.valoracion;
 
 import com.jayway.jsonpath.JsonPath;
-import org.example.compartido.JwtTokens;
+import org.example.compartido.seguridad.JwtTokens;
 import org.example.valoracion.internal.domain.MarcaPeliculaRepository;
 import org.example.valoracion.internal.domain.ValoracionRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -17,13 +17,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Borrar una película elimina sus valoraciones y marcas (requisito 1.4), de extremo a extremo. */
+/**
+ * Borrar una película no toca los datos de otras. Sin eventos entre módulos, sus valoraciones y marcas no se
+ * borran (no hay ciclos pelicula↔valoracion), pero las listas ya no la muestran.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 class BorradoPeliculaIntegracionTest {
@@ -75,23 +80,21 @@ class BorradoPeliculaIntegracionTest {
     }
 
     @Test
-    void eliminarUnaPeliculaBorraSusValoracionesYMarcas() throws Exception {
+    void unaPeliculaEliminadaDejaDeAparecerEnLasListasAunqueLasMarcasNoSeBorren() throws Exception {
         long id = crearPelicula("Borrado Uno");
-        valorar(id, 300, 4).andExpect(status().isOk());
-        valorar(id, 301, 2).andExpect(status().isOk());
         marcar(id, 300, "favorita").andExpect(status().isNoContent());
         marcar(id, 300, "vista").andExpect(status().isNoContent());
-        marcar(id, 301, "vista").andExpect(status().isNoContent());
-        assertEquals(2, valoraciones.findByPeliculaId(id).size());
+        mvc.perform(get("/api/usuarios/me/favoritas").header("Authorization", bearer(300, "USUARIO")))
+                .andExpect(jsonPath("$[0].id").value(id));
 
         mvc.perform(delete("/api/peliculas/" + id).header("Authorization", bearer(1, "ADMIN")))
                 .andExpect(status().isNoContent());
 
         mvc.perform(get("/api/peliculas/" + id)).andExpect(status().isNotFound());
-        assertEquals(0, valoraciones.findByPeliculaId(id).size());
-        assertEquals(0, marcas.findByUsuarioIdAndTipo(300L, org.example.valoracion.internal.domain.TipoMarca.FAVORITA).size());
-        assertEquals(0, marcas.findByUsuarioIdAndTipo(300L, org.example.valoracion.internal.domain.TipoMarca.VISTA).size());
-        assertEquals(0, marcas.findByUsuarioIdAndTipo(301L, org.example.valoracion.internal.domain.TipoMarca.VISTA).size());
+        mvc.perform(get("/api/usuarios/me/favoritas").header("Authorization", bearer(300, "USUARIO")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        mvc.perform(get("/api/usuarios/me/vistas").header("Authorization", bearer(300, "USUARIO")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
@@ -108,8 +111,10 @@ class BorradoPeliculaIntegracionTest {
 
         assertEquals(1, valoraciones.findByPeliculaId(conservada).size());
         var favoritas = marcas.findByUsuarioIdAndTipo(302L, org.example.valoracion.internal.domain.TipoMarca.FAVORITA);
-        assertEquals(1, favoritas.size());
-        assertEquals(conservada, favoritas.get(0).getPeliculaId());
+        assertTrue(favoritas.stream().anyMatch(m -> m.getPeliculaId().equals(conservada)));
+        mvc.perform(get("/api/usuarios/me/favoritas").header("Authorization", bearer(302, "USUARIO")))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(conservada));
     }
 
     @Test

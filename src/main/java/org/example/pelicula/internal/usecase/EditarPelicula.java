@@ -1,5 +1,7 @@
 package org.example.pelicula.internal.usecase;
 
+import org.example.compartido.error.RecursoNoEncontradoException;
+import org.example.pelicula.api.PeliculaResumen;
 import org.example.pelicula.internal.domain.Pelicula;
 import org.example.pelicula.internal.domain.PeliculaRepository;
 import org.springframework.stereotype.Service;
@@ -8,21 +10,20 @@ import org.springframework.stereotype.Service;
 public class EditarPelicula {
 
     private final PeliculaRepository peliculas;
-    private final ObtenerPelicula obtener;
 
-    public EditarPelicula(PeliculaRepository peliculas, ObtenerPelicula obtener) {
+    public EditarPelicula(PeliculaRepository peliculas) {
         this.peliculas = peliculas;
-        this.obtener = obtener;
     }
 
     /** Sustituye título, año, género, director y precio; la valoración media no se edita a mano. */
-    public Pelicula ejecutar(Long id, Pelicula datos) {
-        Pelicula existente = obtener.ejecutar(id);
-        existente.setTitulo(datos.getTitulo());
-        existente.setAnio(datos.getAnio());
-        existente.setGenero(datos.getGenero());
-        existente.setDirector(datos.getDirector());
-        existente.setPrecio(datos.getPrecio());
-        return peliculas.save(existente);
+    public PeliculaResumen ejecutar(Long id, DatosPelicula datos) {
+        Pelicula existente = peliculas.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Película " + id + " no encontrada"));
+        existente.setTitulo(datos.titulo());
+        existente.setAnio(datos.anio());
+        existente.setGenero(datos.genero());
+        existente.setDirector(datos.director());
+        existente.setPrecio(datos.precio());
+        return ResumenDePelicula.de(peliculas.save(existente));
     }
 }
