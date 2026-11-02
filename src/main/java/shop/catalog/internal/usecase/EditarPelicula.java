@@ -15,7 +15,7 @@ public class EditarPelicula {
         this.peliculas = peliculas;
     }
 
-    /** Sustituye título, año, género, director y precio; la valoración media no se edita a mano. */
+    /** Sustituye título, año, género, director, precio y (si se indica) stock; la valoración media no se edita a mano. */
     public PeliculaResumen ejecutar(Long id, DatosPelicula datos) {
         Pelicula existente = peliculas.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Película " + id + " no encontrada"));
@@ -24,6 +24,9 @@ public class EditarPelicula {
         existente.setGenero(datos.genero());
         existente.setDirector(datos.director());
         existente.setPrecio(datos.precio());
+        if (datos.stock() != null) {
+            existente.setStock(datos.stock());
+        }
         return ResumenDePelicula.de(peliculas.save(existente));
     }
 }

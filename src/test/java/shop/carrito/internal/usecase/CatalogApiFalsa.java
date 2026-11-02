@@ -38,7 +38,17 @@ public class CatalogApiFalsa implements CatalogApi {
     public List<PeliculaResumen> resumenes(Collection<Long> ids) {
         return ids.stream().filter(this::existe).sorted()
                 .map(id -> new PeliculaResumen(id, "Película " + id, 2000, "Drama", "Director",
-                        precios.get(id), null))
+                        precios.get(id), null, 0))
                 .toList();
+    }
+
+    @Override
+    public java.util.List<shop.catalog.api.ReservedLine> reserve(java.util.List<shop.catalog.api.StockLine> lines) {
+        throw new UnsupportedOperationException("No lo usa este módulo");
+    }
+
+    @Override
+    public void release(java.util.List<shop.catalog.api.StockLine> lines) {
+        throw new UnsupportedOperationException("No lo usa este módulo");
     }
 }

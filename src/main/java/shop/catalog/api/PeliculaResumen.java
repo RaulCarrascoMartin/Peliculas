@@ -10,5 +10,6 @@ public record PeliculaResumen(
         String genero,
         String director,
         BigDecimal precio,
-        Double valoracionMedia) {
+        Double valoracionMedia,
+        int stock) {
 }

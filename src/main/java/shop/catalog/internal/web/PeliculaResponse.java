@@ -10,10 +10,11 @@ public record PeliculaResponse(
         String genero,
         String director,
         BigDecimal precio,
-        Double valoracionMedia) {
+        Double valoracionMedia,
+        int stock) {
 
     public static PeliculaResponse desde(PeliculaResumen p) {
         return new PeliculaResponse(p.id(), p.titulo(), p.anio(), p.genero(), p.director(), p.precio(),
-                p.valoracionMedia());
+                p.valoracionMedia(), p.stock());
     }
 }

@@ -48,4 +48,20 @@ public class PeliculaRepositoryFalso extends RepositorioEnMemoria<Pelicula> impl
         ids.forEach(id -> findById(id).ifPresent(encontradas::add));
         return encontradas;
     }
+
+    @Override
+    public int descontarStock(Long id, int cantidad) {
+        return findById(id).filter(p -> p.getStock() >= cantidad).map(p -> {
+            p.setStock(p.getStock() - cantidad);
+            return 1;
+        }).orElse(0);
+    }
+
+    @Override
+    public int aumentarStock(Long id, int cantidad) {
+        return findById(id).map(p -> {
+            p.setStock(p.getStock() + cantidad);
+            return 1;
+        }).orElse(0);
+    }
 }

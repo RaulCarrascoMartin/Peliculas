@@ -34,15 +34,15 @@ class PeliculaCasosDeUsoTest {
         buscar = new BuscarPeliculas(repositorio);
         editar = new EditarPelicula(repositorio);
         eliminar = new EliminarPelicula(repositorio);
-        api = new CatalogApiImpl(repositorio);
+        api = new CatalogApiImpl(repositorio, new ReservarStock(repositorio), new LiberarStock(repositorio));
     }
 
     private static DatosPelicula pelicula(String titulo, int anio, String genero, String director) {
-        return new DatosPelicula(titulo, anio, genero, director, null);
+        return new DatosPelicula(titulo, anio, genero, director, null, null);
     }
 
     private static DatosPelicula conPrecio(DatosPelicula datos, String precio) {
-        return new DatosPelicula(datos.titulo(), datos.anio(), datos.genero(), datos.director(), new BigDecimal(precio));
+        return new DatosPelicula(datos.titulo(), datos.anio(), datos.genero(), datos.director(), new BigDecimal(precio), datos.stock());
     }
 
     @Test

@@ -102,4 +102,35 @@ class PeliculaRepositoryTest {
         assertEquals(3, repositorio.buscar(null, null, null, null, pagina).getTotalElements());
         assertTrue(repositorio.buscar("alien", "Drama", null, null, pagina).isEmpty());
     }
+
+    private Long conStock(String titulo, int stock) {
+        var p = pelicula(titulo);
+        p.setStock(stock);
+        return repositorio.saveAndFlush(p).getId();
+    }
+
+    @Test
+    void descontarStockRestaSoloSiHayUnidadesSuficientes() {
+        Long id = conStock("Alien", 5);
+
+        assertEquals(1, repositorio.descontarStock(id, 3));
+        assertEquals(0, repositorio.descontarStock(id, 3));
+        assertEquals(2, repositorio.findById(id).orElseThrow().getStock());
+    }
+
+    @Test
+    void aumentarStockSumaUnidadesYNoAfectaAProductosInexistentes() {
+        Long id = conStock("Alien", 1);
+
+        assertEquals(1, repositorio.aumentarStock(id, 4));
+        assertEquals(0, repositorio.aumentarStock(999L, 4));
+        assertEquals(5, repositorio.findById(id).orElseThrow().getStock());
+    }
+
+    @Test
+    void unaPeliculaNuevaEmpiezaConStockCero() {
+        Long id = repositorio.saveAndFlush(pelicula("Sin stock")).getId();
+
+        assertEquals(0, repositorio.findById(id).orElseThrow().getStock());
+    }
 }

@@ -21,6 +21,7 @@ public class CrearPelicula {
         pelicula.setGenero(datos.genero());
         pelicula.setDirector(datos.director());
         pelicula.setPrecio(datos.precio());
+        pelicula.setStock(datos.stock() == null ? 0 : datos.stock());
         return ResumenDePelicula.de(peliculas.save(pelicula));
     }
 }

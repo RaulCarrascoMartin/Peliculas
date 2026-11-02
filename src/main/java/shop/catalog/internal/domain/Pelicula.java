@@ -32,6 +32,18 @@ public class Pelicula {
     @Column(precision = 10, scale = 2)
     private BigDecimal precio;
 
+    /** Unidades disponibles para pedidos; nunca negativo. */
+    @Column(nullable = false, columnDefinition = "integer not null default 0")
+    private int stock;
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
     public BigDecimal getPrecio() {
         return precio;
     }

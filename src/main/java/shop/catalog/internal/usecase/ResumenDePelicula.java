@@ -11,6 +11,6 @@ final class ResumenDePelicula {
 
     static PeliculaResumen de(Pelicula p) {
         return new PeliculaResumen(p.getId(), p.getTitulo(), p.getAnio(), p.getGenero(), p.getDirector(),
-                p.getPrecio(), p.getValoracionMedia());
+                p.getPrecio(), p.getValoracionMedia(), p.getStock());
     }
 }

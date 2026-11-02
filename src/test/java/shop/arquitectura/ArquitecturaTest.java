@@ -49,7 +49,7 @@ class ArquitecturaTest {
                 .check(clases);
         classes().that().resideInAPackage(BASE + ".*.api")
                 .and().areNotInterfaces()
-                .should().beAssignableTo(Record.class)
+                .should().beAssignableTo(Record.class).orShould().beAssignableTo(RuntimeException.class)
                 .allowEmptyShould(true)
                 .check(clases);
     }

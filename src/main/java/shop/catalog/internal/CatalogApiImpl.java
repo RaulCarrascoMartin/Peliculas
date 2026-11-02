@@ -2,6 +2,10 @@ package shop.catalog.internal;
 
 import shop.compartido.error.RecursoNoEncontradoException;
 import shop.catalog.api.CatalogApi;
+import shop.catalog.api.ReservedLine;
+import shop.catalog.api.StockLine;
+import shop.catalog.internal.usecase.LiberarStock;
+import shop.catalog.internal.usecase.ReservarStock;
 import shop.catalog.api.PeliculaResumen;
 import shop.catalog.internal.domain.Pelicula;
 import shop.catalog.internal.domain.PeliculaRepository;
@@ -16,9 +20,13 @@ import java.util.List;
 public class CatalogApiImpl implements CatalogApi {
 
     private final PeliculaRepository peliculas;
+    private final ReservarStock reservarStock;
+    private final LiberarStock liberarStock;
 
-    public CatalogApiImpl(PeliculaRepository peliculas) {
+    public CatalogApiImpl(PeliculaRepository peliculas, ReservarStock reservarStock, LiberarStock liberarStock) {
         this.peliculas = peliculas;
+        this.reservarStock = reservarStock;
+        this.liberarStock = liberarStock;
     }
 
     @Override
@@ -39,7 +47,17 @@ public class CatalogApiImpl implements CatalogApi {
         return peliculas.findAllById(ids).stream()
                 .sorted(Comparator.comparing(Pelicula::getId))
                 .map(p -> new PeliculaResumen(p.getId(), p.getTitulo(), p.getAnio(), p.getGenero(),
-                        p.getDirector(), p.getPrecio(), p.getValoracionMedia()))
+                        p.getDirector(), p.getPrecio(), p.getValoracionMedia(), p.getStock()))
                 .toList();
+    }
+
+    @Override
+    public List<ReservedLine> reserve(List<StockLine> lines) {
+        return reservarStock.ejecutar(lines);
+    }
+
+    @Override
+    public void release(List<StockLine> lines) {
+        liberarStock.ejecutar(lines);
     }
 }

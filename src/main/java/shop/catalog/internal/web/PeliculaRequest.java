@@ -15,9 +15,10 @@ public record PeliculaRequest(
         @NotNull @Min(1888) @Max(2100) Integer anio,
         @NotBlank String genero,
         @NotBlank String director,
-        @NotNull @Positive @Digits(integer = 8, fraction = 2) BigDecimal precio) {
+        @NotNull @Positive @Digits(integer = 8, fraction = 2) BigDecimal precio,
+        @Min(0) Integer stock) {
 
     public DatosPelicula aDatos() {
-        return new DatosPelicula(titulo, anio, genero, director, precio);
+        return new DatosPelicula(titulo, anio, genero, director, precio, stock);
     }
 }
