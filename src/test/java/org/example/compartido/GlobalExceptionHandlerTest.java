@@ -2,7 +2,9 @@ package org.example.compartido;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -78,5 +80,24 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.FORBIDDEN, respuesta.getStatusCode());
         assertEquals(403, respuesta.getBody().estado());
         assertEquals("Acceso denegado", respuesta.getBody().mensaje());
+    }
+
+    @Test
+    void bloqueoOptimistaDevuelve409ConElCuerpoEstandarSeaCualSeaSuOrigen() {
+        var respuesta = handler.bloqueoOptimista(new ObjectOptimisticLockingFailureException("Carrito", 7L));
+
+        assertEquals(HttpStatus.CONFLICT, respuesta.getStatusCode());
+        assertEquals(409, respuesta.getBody().estado());
+        assertNotNull(respuesta.getBody().mensaje());
+        assertTrue(respuesta.getBody().errores().isEmpty());
+    }
+
+    @Test
+    void elBloqueoOptimistaNoFiltraDetallesInternosEnElMensaje() {
+        var respuesta = handler.bloqueoOptimista(
+                new OptimisticLockingFailureException("Row was updated or deleted by another transaction: Carrito#7"));
+
+        assertEquals(HttpStatus.CONFLICT, respuesta.getStatusCode());
+        assertTrue(!respuesta.getBody().mensaje().contains("Carrito#7"));
     }
 }

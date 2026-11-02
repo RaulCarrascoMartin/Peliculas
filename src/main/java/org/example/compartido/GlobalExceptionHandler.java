@@ -3,6 +3,7 @@ package org.example.compartido;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictoException.class)
     public ResponseEntity<ErrorRespuesta> conflicto(ConflictoException ex) {
         return respuesta(HttpStatus.CONFLICT, ex.getMessage(), Map.of());
+    }
+
+    /**
+     * Bloqueo optimista perdido (dos peticiones sobre el mismo carrito): 409 sea cual sea el punto del fallo,
+     * incluido el flush o commit que ocurre fuera del cuerpo del servicio. No expone la entidad ni el id.
+     */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorRespuesta> bloqueoOptimista(OptimisticLockingFailureException ex) {
+        return respuesta(HttpStatus.CONFLICT, "El recurso fue modificado por otra petición; inténtalo de nuevo", Map.of());
     }
 
     @ExceptionHandler(ValidacionException.class)
