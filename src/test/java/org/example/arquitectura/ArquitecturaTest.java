@@ -26,16 +26,16 @@ class ArquitecturaTest {
 
     @Test
     void domainNoDependeDeApplicationNiWeb() {
-        noClasses().that().resideInAPackage(BASE + "..domain..")
-                .should().dependOnClassesThat().resideInAnyPackage(BASE + "..application..", BASE + "..web..")
+        noClasses().that().resideInAPackage(BASE + "..internal.domain..")
+                .should().dependOnClassesThat().resideInAnyPackage(BASE + "..internal.usecase..", BASE + "..internal.web..")
                 .allowEmptyShould(true)
                 .check(clases);
     }
 
     @Test
     void applicationNoDependeDeWeb() {
-        noClasses().that().resideInAPackage(BASE + "..application..")
-                .should().dependOnClassesThat().resideInAPackage(BASE + "..web..")
+        noClasses().that().resideInAPackage(BASE + "..internal.usecase..")
+                .should().dependOnClassesThat().resideInAPackage(BASE + "..internal.web..")
                 .allowEmptyShould(true)
                 .check(clases);
     }
@@ -46,7 +46,18 @@ class ArquitecturaTest {
             String propio = BASE + "." + modulo;
             noClasses().that().resideOutsideOfPackage(propio + "..")
                     .should().dependOnClassesThat().resideInAnyPackage(
-                            propio + ".domain..", propio + ".application..", propio + ".web..")
+                            propio + ".internal..")
+                    .allowEmptyShould(true)
+                    .check(clases);
+        }
+    }
+
+    @Test
+    void laApiPublicaNoDependeDeSuInterior() {
+        for (String modulo : MODULOS) {
+            String propio = BASE + "." + modulo;
+            noClasses().that().resideInAPackage(propio + ".api..")
+                    .should().dependOnClassesThat().resideInAPackage(propio + ".internal..")
                     .allowEmptyShould(true)
                     .check(clases);
         }

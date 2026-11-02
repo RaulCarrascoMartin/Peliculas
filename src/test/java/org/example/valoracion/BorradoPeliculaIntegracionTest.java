@@ -2,8 +2,8 @@ package org.example.valoracion;
 
 import com.jayway.jsonpath.JsonPath;
 import org.example.compartido.JwtTokens;
-import org.example.valoracion.domain.MarcaPeliculaRepository;
-import org.example.valoracion.domain.ValoracionRepository;
+import org.example.valoracion.internal.domain.MarcaPeliculaRepository;
+import org.example.valoracion.internal.domain.ValoracionRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,9 +89,9 @@ class BorradoPeliculaIntegracionTest {
 
         mvc.perform(get("/api/peliculas/" + id)).andExpect(status().isNotFound());
         assertEquals(0, valoraciones.findByPeliculaId(id).size());
-        assertEquals(0, marcas.findByUsuarioIdAndTipo(300L, org.example.valoracion.domain.TipoMarca.FAVORITA).size());
-        assertEquals(0, marcas.findByUsuarioIdAndTipo(300L, org.example.valoracion.domain.TipoMarca.VISTA).size());
-        assertEquals(0, marcas.findByUsuarioIdAndTipo(301L, org.example.valoracion.domain.TipoMarca.VISTA).size());
+        assertEquals(0, marcas.findByUsuarioIdAndTipo(300L, org.example.valoracion.internal.domain.TipoMarca.FAVORITA).size());
+        assertEquals(0, marcas.findByUsuarioIdAndTipo(300L, org.example.valoracion.internal.domain.TipoMarca.VISTA).size());
+        assertEquals(0, marcas.findByUsuarioIdAndTipo(301L, org.example.valoracion.internal.domain.TipoMarca.VISTA).size());
     }
 
     @Test
@@ -107,7 +107,7 @@ class BorradoPeliculaIntegracionTest {
                 .andExpect(status().isNoContent());
 
         assertEquals(1, valoraciones.findByPeliculaId(conservada).size());
-        var favoritas = marcas.findByUsuarioIdAndTipo(302L, org.example.valoracion.domain.TipoMarca.FAVORITA);
+        var favoritas = marcas.findByUsuarioIdAndTipo(302L, org.example.valoracion.internal.domain.TipoMarca.FAVORITA);
         assertEquals(1, favoritas.size());
         assertEquals(conservada, favoritas.get(0).getPeliculaId());
     }

@@ -134,8 +134,8 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/static/contratos/carrito-api.yml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>org.example.carrito.web.api</apiPackage>
-                            <modelPackage>org.example.carrito.web.dto</modelPackage>
+                            <apiPackage>org.example.carrito.internal.web.api</apiPackage>
+                            <modelPackage>org.example.carrito.internal.web.dto</modelPackage>
                             <configOptions>
                                 <useSpringBoot4>true</useSpringBoot4>
                                 <useJackson3>true</useJackson3>
@@ -163,8 +163,8 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/static/contratos/compras-api.yml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>org.example.compra.web.api</apiPackage>
-                            <modelPackage>org.example.compra.web.dto</modelPackage>
+                            <apiPackage>org.example.compra.internal.web.api</apiPackage>
+                            <modelPackage>org.example.compra.internal.web.dto</modelPackage>
                             <configOptions>
                                 <useSpringBoot4>true</useSpringBoot4>
                                 <useJackson3>true</useJackson3>
