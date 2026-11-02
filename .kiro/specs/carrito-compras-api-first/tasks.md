@@ -1,6 +1,6 @@
 # Plan de implementación
 
-- [ ] 1. Preparar la generación de código y la UI del contrato
+- [x] 1. Preparar la generación de código y la UI del contrato
   - [x] 1.1 Spike: añadir al `pom.xml` el plugin `openapi-generator-maven-plugin` 7.26.0 (dos ejecuciones, una por módulo, apuntando a `static/contratos/carrito-api.yml` y `compras-api.yml`) con las opciones `useSpringBoot4`, `useJackson3`, `useRecords`, `interfaceOnly`, `skipDefaultInterface`, `useTags`, `requestMappingMode=api_interface`, `useResponseEntity=false`, `openApiNullable=false`, `documentationProvider=none`, `annotationLibrary=none`, `useSwaggerUI=false`, `dateLibrary=java8`, `hideGenerationTimestamp=true`; añadir el webjar `org.webjars:swagger-ui`; crear los dos YAML mínimos temporales para validar el build
     - Ejecutar `mvn generate-sources` y `mvn compile`: el código generado compila con Boot 4.1 / Java 26
     - Verificar que Spring MVC registra los mapeos heredados de las interfaces generadas (arranque o prueba MockMvc)
@@ -13,7 +13,7 @@
     - _Depends: 1.1_
   - _Requisitos: 8.2, 8.3_
 
-- [ ] 2. Contratos OpenAPI definitivos
+- [x] 2. Contratos OpenAPI definitivos
   - [x] 2.1 (P) Escribir `static/contratos/carrito-api.yml`: paths `/api/carrito`, `/api/carrito/lineas`, `/api/carrito/lineas/{peliculaId}`; schemas `Carrito`, `LineaCarrito`, `AnadirLinea`, `ErrorRespuesta`; `bearerAuth` global; ejemplos por error
     - Observable: el YAML valida (mojo validate) y al regenerar aparecen `CarritoRestApi` y los DTO en `org.example.carrito.web.api/.dto`
     - _Boundary: contrato carrito_
@@ -49,7 +49,7 @@
     - Observable: los cuatro endpoints responden según el catálogo de errores del diseño con token; 401 sin token
   - _Requisitos: 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4
 
-- [ ] 5. Módulo `compra`
+- [x] 5. Módulo `compra`
   - [x] 5.1 (P) Entidades `Compra` (usuarioId, fecha `LocalDateTime`, total, estado `COMPRADA`, índice usuario+fecha) y `LineaCompra` (compraId, peliculaId, titulo, precioUnitario snapshot), `CompraRepository` y doble
     - Observable: el historial conserva titulo y precio aunque la película se edite o elimine (verificado en pruebas unitarias)
     - _Boundary: compra/domain_
@@ -62,7 +62,7 @@
     - Observable: los tres endpoints responden según el diseño con token
   - _Requisitos: 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3
 
-- [ ] 6. Concurrencia de checkout
+- [x] 6. Concurrencia de checkout
   - [x] 6.1 Mapeo de bloqueo optimista a 409 en `GlobalExceptionHandler` — mecanismo autoridad de 5.6, cubre el fallo en flush/commit aunque ocurra fuera del cuerpo de `finalizar` — + prueba del handler
     - _Boundary: compartido_
     - Observable: una excepción de bloqueo optimista produce 409 con el cuerpo estándar, venga de donde venga
@@ -70,7 +70,7 @@
     - _Depends: 5.3, 6.1_
   - _Requisitos: 5.6
 
-- [ ] 7. Seguridad y cierre
+- [x] 7. Seguridad y cierre
   - [x] 7.1 Extender `SeguridadIntegracionTest`: 401 sin token y con token caducado en las siete rutas nuevas (cuatro de carrito: `GET /api/carrito`, `POST /api/carrito/lineas`, `DELETE /api/carrito/lineas/{peliculaId}`, `DELETE /api/carrito`; tres de compras: `POST /api/compras`, `GET /api/compras`, `GET /api/compras/{compraId}`); verificar que una compra ajena da 404 y no 403; confirmar que ningún endpoint acepta usuario en cuerpo o ruta
     - Observable: la suite de seguridad cubre las 7 rutas y pasa
   - [x] 7.2 Revisar la cobertura requisito↔prueba (mapeo en notas) y ejecutar `mvn test` completo incluida ArchUnit
