@@ -5,9 +5,9 @@ Monolito modular: una única aplicación desplegable dividida en módulos por fu
 ```
 src/main/java/shop/
 ├── ShopApplication.java          # punto de entrada (Spring Boot)
-├── <modulo>/                     # pelicula, valoracion, autenticacion, carrito, compra
+├── <modulo>/                     # catalog, valoracion, autenticacion, carrito, compra
 │   ├── api/                      # parte pública: lo único que ven otros módulos
-│   │   └── XxxApi y records públicos (p. ej. PeliculaApi, PeliculaResumen, CarritoApi)
+│   │   └── XxxApi y records públicos (p. ej. CatalogApi, PeliculaResumen, CarritoApi)
 │   └── internal/                 # parte interna: nadie fuera del módulo la usa
 │       ├── XxxApiImpl            # record que implementa la Api; único punto de salida hacia otros módulos
 │       ├── 

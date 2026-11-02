@@ -1,8 +1,8 @@
 package shop.valoracion.internal.usecase;
 
 import shop.compartido.seguridad.UsuarioActual;
-import shop.pelicula.api.PeliculaApi;
-import shop.pelicula.api.PeliculaResumen;
+import shop.catalog.api.CatalogApi;
+import shop.catalog.api.PeliculaResumen;
 import shop.valoracion.internal.domain.MarcaPelicula;
 import shop.valoracion.internal.domain.MarcaPeliculaRepository;
 import shop.valoracion.internal.domain.TipoMarca;
@@ -14,10 +14,10 @@ import java.util.List;
 public class ListarPeliculasMarcadas {
 
     private final MarcaPeliculaRepository marcas;
-    private final PeliculaApi peliculas;
+    private final CatalogApi peliculas;
     private final UsuarioActual usuarioActual;
 
-    public ListarPeliculasMarcadas(MarcaPeliculaRepository marcas, PeliculaApi peliculas, UsuarioActual usuarioActual) {
+    public ListarPeliculasMarcadas(MarcaPeliculaRepository marcas, CatalogApi peliculas, UsuarioActual usuarioActual) {
         this.marcas = marcas;
         this.peliculas = peliculas;
         this.usuarioActual = usuarioActual;

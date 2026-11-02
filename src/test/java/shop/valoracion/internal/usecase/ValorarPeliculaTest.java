@@ -16,12 +16,12 @@ class ValorarPeliculaTest {
     private static final Long PELICULA = 10L;
 
     private ValoracionRepositoryFalso repositorio;
-    private PeliculaApiFalsa peliculas;
+    private CatalogApiFalsa peliculas;
 
     @BeforeEach
     void preparar() {
         repositorio = new ValoracionRepositoryFalso();
-        peliculas = new PeliculaApiFalsa();
+        peliculas = new CatalogApiFalsa();
         peliculas.anadirPelicula(PELICULA);
     }
 

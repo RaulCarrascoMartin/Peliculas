@@ -25,7 +25,7 @@ class CarritoCasosDeUsoTest {
 
     private CarritoRepositoryFalso carritos;
     private LineaCarritoRepositoryFalso lineas;
-    private PeliculaApiFalsa peliculas;
+    private CatalogApiFalsa peliculas;
     private VerCarrito ver;
     private AnadirAlCarrito anadir;
     private QuitarDelCarrito quitar;
@@ -36,7 +36,7 @@ class CarritoCasosDeUsoTest {
     void preparar() {
         carritos = new CarritoRepositoryFalso();
         lineas = new LineaCarritoRepositoryFalso();
-        peliculas = new PeliculaApiFalsa();
+        peliculas = new CatalogApiFalsa();
         ver = new VerCarrito(carritos, lineas, peliculas);
         anadir = new AnadirAlCarrito(carritos, lineas, peliculas);
         quitar = new QuitarDelCarrito(carritos, lineas);

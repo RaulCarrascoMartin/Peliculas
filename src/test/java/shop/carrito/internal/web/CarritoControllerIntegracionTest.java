@@ -2,8 +2,8 @@ package shop.carrito.internal.web;
 
 import com.jayway.jsonpath.JsonPath;
 import shop.compartido.seguridad.JwtTokens;
-import shop.pelicula.internal.domain.Pelicula;
-import shop.pelicula.internal.domain.PeliculaRepository;
+import shop.catalog.internal.domain.Pelicula;
+import shop.catalog.internal.domain.PeliculaRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -7,8 +7,8 @@ import shop.compra.internal.domain.CompraRepository;
 import shop.compra.internal.domain.EstadoCompra;
 import shop.compra.internal.domain.LineaCompra;
 import shop.compra.internal.domain.LineaCompraRepository;
-import shop.pelicula.api.PeliculaApi;
-import shop.pelicula.api.PeliculaResumen;
+import shop.catalog.api.CatalogApi;
+import shop.catalog.api.PeliculaResumen;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * Checkout atómico con snapshot de título y precio. Lee y vacía el carrito solo por {@link CarritoApi}
- * y las películas solo por {@link PeliculaApi}.
+ * y las películas solo por {@link CatalogApi}.
  */
 @Service
 public class FinalizarCompra {
@@ -30,9 +30,9 @@ public class FinalizarCompra {
     private final CompraRepository compras;
     private final LineaCompraRepository lineas;
     private final CarritoApi carritos;
-    private final PeliculaApi peliculas;
+    private final CatalogApi peliculas;
 
-    public FinalizarCompra(CompraRepository compras, LineaCompraRepository lineas, CarritoApi carritos, PeliculaApi peliculas) {
+    public FinalizarCompra(CompraRepository compras, LineaCompraRepository lineas, CarritoApi carritos, CatalogApi peliculas) {
         this.compras = compras;
         this.lineas = lineas;
         this.carritos = carritos;

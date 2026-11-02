@@ -6,8 +6,8 @@ import shop.carrito.internal.domain.LineaCarrito;
 import shop.carrito.internal.domain.LineaCarritoRepository;
 import shop.compartido.error.ConflictoException;
 import shop.compartido.error.RecursoNoEncontradoException;
-import shop.pelicula.api.PeliculaApi;
-import shop.pelicula.api.PeliculaResumen;
+import shop.catalog.api.CatalogApi;
+import shop.catalog.api.PeliculaResumen;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +19,9 @@ public class AnadirAlCarrito {
 
     private final CarritoRepository carritos;
     private final LineaCarritoRepository lineas;
-    private final PeliculaApi peliculas;
+    private final CatalogApi peliculas;
 
-    public AnadirAlCarrito(CarritoRepository carritos, LineaCarritoRepository lineas, PeliculaApi peliculas) {
+    public AnadirAlCarrito(CarritoRepository carritos, LineaCarritoRepository lineas, CatalogApi peliculas) {
         this.carritos = carritos;
         this.lineas = lineas;
         this.peliculas = peliculas;

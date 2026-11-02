@@ -2,7 +2,7 @@ package shop.valoracion.internal.usecase;
 
 import shop.compartido.error.RecursoNoEncontradoException;
 import shop.compartido.seguridad.UsuarioActualFalso;
-import shop.pelicula.api.PeliculaResumen;
+import shop.catalog.api.PeliculaResumen;
 import shop.valoracion.internal.domain.TipoMarca;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,12 +16,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MarcaPeliculaCasosDeUsoTest {
 
     private MarcaPeliculaRepositoryFalso repositorio;
-    private PeliculaApiFalsa peliculas;
+    private CatalogApiFalsa peliculas;
 
     @BeforeEach
     void preparar() {
         repositorio = new MarcaPeliculaRepositoryFalso();
-        peliculas = new PeliculaApiFalsa();
+        peliculas = new CatalogApiFalsa();
         peliculas.anadirPelicula(10L);
         peliculas.anadirPelicula(11L);
     }

@@ -1,7 +1,7 @@
 package shop.compra.internal.domain;
 
-import shop.pelicula.internal.domain.Pelicula;
-import shop.pelicula.internal.domain.PeliculaRepository;
+import shop.catalog.internal.domain.Pelicula;
+import shop.catalog.internal.domain.PeliculaRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

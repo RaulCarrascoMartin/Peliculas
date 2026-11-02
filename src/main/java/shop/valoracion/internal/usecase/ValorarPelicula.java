@@ -3,7 +3,7 @@ package shop.valoracion.internal.usecase;
 import shop.compartido.error.RecursoNoEncontradoException;
 import shop.compartido.seguridad.UsuarioActual;
 import shop.compartido.error.ValidacionException;
-import shop.pelicula.api.PeliculaApi;
+import shop.catalog.api.CatalogApi;
 import shop.valoracion.internal.domain.Valoracion;
 import shop.valoracion.internal.domain.ValoracionRepository;
 import org.springframework.stereotype.Service;
@@ -13,10 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class ValorarPelicula {
 
     private final ValoracionRepository valoraciones;
-    private final PeliculaApi peliculas;
+    private final CatalogApi peliculas;
     private final UsuarioActual usuarioActual;
 
-    public ValorarPelicula(ValoracionRepository valoraciones, PeliculaApi peliculas, UsuarioActual usuarioActual) {
+    public ValorarPelicula(ValoracionRepository valoraciones, CatalogApi peliculas, UsuarioActual usuarioActual) {
         this.valoraciones = valoraciones;
         this.peliculas = peliculas;
         this.usuarioActual = usuarioActual;

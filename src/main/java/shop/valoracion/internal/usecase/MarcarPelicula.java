@@ -2,7 +2,7 @@ package shop.valoracion.internal.usecase;
 
 import shop.compartido.error.RecursoNoEncontradoException;
 import shop.compartido.seguridad.UsuarioActual;
-import shop.pelicula.api.PeliculaApi;
+import shop.catalog.api.CatalogApi;
 import shop.valoracion.internal.domain.MarcaPelicula;
 import shop.valoracion.internal.domain.MarcaPeliculaRepository;
 import shop.valoracion.internal.domain.TipoMarca;
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Service;
 public class MarcarPelicula {
 
     private final MarcaPeliculaRepository marcas;
-    private final PeliculaApi peliculas;
+    private final CatalogApi peliculas;
     private final UsuarioActual usuarioActual;
 
-    public MarcarPelicula(MarcaPeliculaRepository marcas, PeliculaApi peliculas, UsuarioActual usuarioActual) {
+    public MarcarPelicula(MarcaPeliculaRepository marcas, CatalogApi peliculas, UsuarioActual usuarioActual) {
         this.marcas = marcas;
         this.peliculas = peliculas;
         this.usuarioActual = usuarioActual;

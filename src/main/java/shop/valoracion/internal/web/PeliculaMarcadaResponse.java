@@ -1,6 +1,6 @@
 package shop.valoracion.internal.web;
 
-import shop.pelicula.api.PeliculaResumen;
+import shop.catalog.api.PeliculaResumen;
 
 public record PeliculaMarcadaResponse(
         Long id,

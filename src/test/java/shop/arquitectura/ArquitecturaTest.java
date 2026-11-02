@@ -13,7 +13,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 class ArquitecturaTest {
 
     private static final String BASE = "shop";
-    private static final String[] MODULOS = {"pelicula", "valoracion", "autenticacion", "carrito", "compra"};
+    private static final String[] MODULOS = {"catalog", "valoracion", "autenticacion", "carrito", "compra"};
 
     private static JavaClasses clases;
 
@@ -97,7 +97,7 @@ class ArquitecturaTest {
     void compartidoNoDependeDeModulos() {
         noClasses().that().resideInAPackage(BASE + ".compartido..")
                 .should().dependOnClassesThat().resideInAnyPackage(
-                        BASE + ".pelicula..", BASE + ".valoracion..", BASE + ".autenticacion..",
+                        BASE + ".catalog..", BASE + ".valoracion..", BASE + ".autenticacion..",
                         BASE + ".carrito..", BASE + ".compra..")
                 .allowEmptyShould(true)
                 .check(clases);

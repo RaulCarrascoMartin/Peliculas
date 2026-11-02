@@ -4,8 +4,8 @@ import shop.carrito.internal.domain.Carrito;
 import shop.carrito.internal.domain.CarritoRepository;
 import shop.carrito.internal.domain.LineaCarrito;
 import shop.carrito.internal.domain.LineaCarritoRepository;
-import shop.pelicula.api.PeliculaApi;
-import shop.pelicula.api.PeliculaResumen;
+import shop.catalog.api.CatalogApi;
+import shop.catalog.api.PeliculaResumen;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,9 +20,9 @@ public class VerCarrito {
 
     private final CarritoRepository carritos;
     private final LineaCarritoRepository lineas;
-    private final PeliculaApi peliculas;
+    private final CatalogApi peliculas;
 
-    public VerCarrito(CarritoRepository carritos, LineaCarritoRepository lineas, PeliculaApi peliculas) {
+    public VerCarrito(CarritoRepository carritos, LineaCarritoRepository lineas, CatalogApi peliculas) {
         this.carritos = carritos;
         this.lineas = lineas;
         this.peliculas = peliculas;

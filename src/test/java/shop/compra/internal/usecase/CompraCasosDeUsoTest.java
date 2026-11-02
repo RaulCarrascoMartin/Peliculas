@@ -21,7 +21,7 @@ class CompraCasosDeUsoTest {
     private CompraRepositoryFalso compras;
     private LineaCompraRepositoryFalso lineas;
     private CarritoApiFalsa carritos;
-    private PeliculaApiFalsa peliculas;
+    private CatalogApiFalsa peliculas;
     private FinalizarCompra finalizar;
     private ListarCompras listar;
     private ObtenerCompra obtener;
@@ -31,7 +31,7 @@ class CompraCasosDeUsoTest {
         compras = new CompraRepositoryFalso();
         lineas = new LineaCompraRepositoryFalso();
         carritos = new CarritoApiFalsa();
-        peliculas = new PeliculaApiFalsa();
+        peliculas = new CatalogApiFalsa();
         finalizar = new FinalizarCompra(compras, lineas, carritos, peliculas);
         listar = new ListarCompras(compras, lineas);
         obtener = new ObtenerCompra(compras, lineas);
