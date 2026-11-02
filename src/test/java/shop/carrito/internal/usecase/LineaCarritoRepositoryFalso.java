@@ -52,6 +52,11 @@ public class LineaCarritoRepositoryFalso extends RepositorioEnMemoria<LineaCarri
     }
 
     @Override
+    public boolean existsByCarritoIdAndPeliculaId(Long carritoId, Long peliculaId) {
+        return findByCarritoIdAndPeliculaId(carritoId, peliculaId).isPresent();
+    }
+
+    @Override
     public void deleteByPeliculaId(Long peliculaId) {
         entidades.values().removeIf(l -> l.getPeliculaId().equals(peliculaId));
     }

@@ -12,6 +12,8 @@ public interface LineaCarritoRepository extends JpaRepository<LineaCarrito, Long
     /** Una línea por película y carrito (UNIQUE en carritoId + peliculaId). */
     Optional<LineaCarrito> findByCarritoIdAndPeliculaId(Long carritoId, Long peliculaId);
 
+    boolean existsByCarritoIdAndPeliculaId(Long carritoId, Long peliculaId);
+
     /** Limpieza al eliminar una película del catálogo: quita su línea de todos los carritos. */
     void deleteByPeliculaId(Long peliculaId);
 

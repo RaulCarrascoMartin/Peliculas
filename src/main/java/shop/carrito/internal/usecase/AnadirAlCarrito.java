@@ -29,23 +29,34 @@ public class AnadirAlCarrito {
 
     @Transactional
     public LineaDeCarrito ejecutar(Long usuarioId, Long peliculaId) {
-        List<PeliculaResumen> resumenes = peliculas.resumenes(List.of(peliculaId));
-        if (resumenes.isEmpty()) {
-            throw new RecursoNoEncontradoException("La película " + peliculaId + " no existe");
-        }
+        PeliculaResumen pelicula = peliculaComprable(peliculaId);
         Carrito carrito = obtenerOCrear(usuarioId);
-        if (lineas.findByCarritoIdAndPeliculaId(carrito.getId(), peliculaId).isPresent()) {
+        if (lineas.existsByCarritoIdAndPeliculaId(carrito.getId(), peliculaId)) {
             throw new ConflictoException("La película ya está en el carrito");
         }
-        PeliculaResumen resumen = resumenes.get(0);
-        if (resumen.precio() == null) {
+        lineas.save(nuevaLinea(carrito, peliculaId));
+        return new LineaDeCarrito(peliculaId, pelicula.titulo(), pelicula.precio());
+    }
+
+    /** La película debe existir en el catálogo y tener precio. */
+    private PeliculaResumen peliculaComprable(Long peliculaId) {
+
+        PeliculaResumen pelicula = peliculas.resumenes(List.of(peliculaId)).stream()
+                .findFirst()
+                .orElseThrow(() -> new RecursoNoEncontradoException("La película " + peliculaId + " no existe"));
+
+        if (pelicula.precio() == null) {
             throw new ConflictoException("La película no tiene precio y no es comprable");
         }
-        LineaCarrito linea = new LineaCarrito();
+
+        return pelicula;
+    }
+
+    private static LineaCarrito nuevaLinea(Carrito carrito, Long peliculaId) {
+        var linea = new LineaCarrito();
         linea.setCarritoId(carrito.getId());
         linea.setPeliculaId(peliculaId);
-        lineas.save(linea);
-        return new LineaDeCarrito(peliculaId, resumen.titulo(), resumen.precio());
+        return linea;
     }
 
     /** La primera línea crea el carrito; en la carrera del UNIQUE lo gana otro hilo y se relee su carrito. */
