@@ -257,4 +257,17 @@ class CarritoControllerIntegracionTest {
         mvc.perform(delete("/api/carrito/lineas/1")).andExpect(status().isUnauthorized());
         mvc.perform(delete("/api/carrito")).andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void unUsuarioIdEnElCuerpoSeIgnoraYLaLineaVaAlCarritoDelToken() throws Exception {
+        long pelicula = crearPelicula();
+
+        mvc.perform(post("/api/carrito/lineas").header("Authorization", bearer(2013, "USUARIO"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"peliculaId\":" + pelicula + ",\"usuarioId\":2014}"))
+                .andExpect(status().isCreated());
+
+        pedirConToken(2013, "/api/carrito").andExpect(jsonPath("$.lineas", org.hamcrest.Matchers.hasSize(1)));
+        pedirConToken(2014, "/api/carrito").andExpect(jsonPath("$.lineas").isEmpty());
+    }
 }

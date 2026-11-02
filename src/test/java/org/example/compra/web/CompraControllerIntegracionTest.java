@@ -189,4 +189,31 @@ class CompraControllerIntegracionTest {
         mvc.perform(get("/api/compras")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/compras/1")).andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void niSiquieraElAdministradorVeLaCompraDeOtroUsuario() throws Exception {
+        long pelicula = crearPelicula();
+        anadirAlCarrito(3008, pelicula);
+        long compra = idDe(finalizar(3008).andExpect(status().isCreated()));
+
+        mvc.perform(get("/api/compras/" + compra).header("Authorization", bearerAdmin()))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/compras").header("Authorization", bearerAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + compra + ")]").isEmpty());
+    }
+
+    @Test
+    void unIdentificadorDeUsuarioEnLaPeticionSeIgnoraYSeUsaElDelToken() throws Exception {
+        long pelicula = crearPelicula();
+        anadirAlCarrito(3009, pelicula);
+
+        mvc.perform(post("/api/compras?usuarioId=3009").header("Authorization", bearer(3010)))
+                .andExpect(status().isConflict());
+        mvc.perform(get("/api/compras?usuarioId=3009").header("Authorization", bearer(3010)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+        mvc.perform(get("/api/carrito").header("Authorization", bearer(3009)))
+                .andExpect(jsonPath("$.lineas", hasSize(1)));
+    }
 }
