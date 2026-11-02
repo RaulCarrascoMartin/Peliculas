@@ -129,6 +129,14 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>validar-orders</id>
+                        <phase>validate</phase>
+                        <goals><goal>validate</goal></goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/static/contratos/orders-api.yml</inputSpec>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>generar-carrito</id>
                         <goals><goal>generate</goal></goals>
                         <configuration>
@@ -165,6 +173,35 @@
                             <generatorName>spring</generatorName>
                             <apiPackage>shop.compra.internal.web.api</apiPackage>
                             <modelPackage>shop.compra.internal.web.dto</modelPackage>
+                            <configOptions>
+                                <useSpringBoot4>true</useSpringBoot4>
+                                <useJackson3>true</useJackson3>
+                                <generateJsonIncludeAnnotations>false</generateJsonIncludeAnnotations>
+                                <generateJsonSetterNullsAnnotations>false</generateJsonSetterNullsAnnotations>
+                                <useRecords>true</useRecords>
+                                <interfaceOnly>true</interfaceOnly>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                                <useTags>true</useTags>
+                                <requestMappingMode>api_interface</requestMappingMode>
+                                <useResponseEntity>false</useResponseEntity>
+                                <useBeanValidation>true</useBeanValidation>
+                                <openApiNullable>false</openApiNullable>
+                                <documentationProvider>none</documentationProvider>
+                                <annotationLibrary>none</annotationLibrary>
+                                <useSwaggerUI>false</useSwaggerUI>
+                                <dateLibrary>java8</dateLibrary>
+                                <hideGenerationTimestamp>true</hideGenerationTimestamp>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generar-orders</id>
+                        <goals><goal>generate</goal></goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/static/contratos/orders-api.yml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <apiPackage>shop.orders.internal.web.api</apiPackage>
+                            <modelPackage>shop.orders.internal.web.dto</modelPackage>
                             <configOptions>
                                 <useSpringBoot4>true</useSpringBoot4>
                                 <useJackson3>true</useJackson3>
