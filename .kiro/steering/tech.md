@@ -11,6 +11,7 @@
 ## Pruebas
 - JUnit 5 como framework de pruebas.
 - Dobles de prueba escritos a mano (fakes/stubs); no se usa Mockito.
+- Spring Modulith (`ApplicationModules.verify()`) comprueba en cada build los límites entre módulos.
 - ArchUnit para validar reglas de arquitectura: `internal.domain` no depende de `usecase` ni `web`, los módulos solo se acceden por su paquete `api` y no hay ciclos entre módulos.
 
 ## Comandos

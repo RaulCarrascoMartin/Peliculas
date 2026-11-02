@@ -5,7 +5,7 @@ Monolito modular: una única aplicación desplegable dividida en módulos por fu
 ```
 src/main/java/shop/
 ├── ShopApplication.java          # punto de entrada (Spring Boot)
-├── <modulo>/                     # catalog, valoracion, autenticacion, carrito, compra
+├── <modulo>/                     # catalog, orders, valoracion, autenticacion, carrito, compra
 │   ├── api/                      # parte pública: lo único que ven otros módulos
 │   │   └── XxxApi y records públicos (p. ej. CatalogApi, PeliculaResumen, CarritoApi)
 │   └── internal/                 # parte interna: nadie fuera del módulo la usa
@@ -21,6 +21,11 @@ src/test/java/shop/        # mismas rutas que main, más pruebas de arquitectura
 .kiro/specs/                      # specs (requirements, design, tasks)
 ```
 
+## Módulo orders (P6)
+- `orders` usa persistencia JDBC (`JdbcClient`) en lugar de JPA: `internal/domain` tiene `Order`, `OrderLine` y la interfaz `OrderRepository`; `internal/persistence` tiene `JdbcOrderRepository`. Sus tablas (`orders`, `order_lines`) están en `src/main/resources/init.sql`.
+- Solo consume `shop.catalog.api.CatalogApi` (`reserve` y `release`); traduce sus excepciones a 404/409 en el caso de uso.
+- Contrato: `static/contratos/orders-api.yml` (v0.2.0), del que se genera `OrdersRestApi` y los DTO.
+
 ## Reglas de dependencias
 - Dentro de `internal`: `web` → `usecase` → `domain`, y `web` → `domain`. `domain` no depende de `usecase` ni de `web`.
 - `domain` puede usar Spring y JPA (anotaciones, Spring Data); el framework no va a cambiar.
@@ -30,6 +35,7 @@ src/test/java/shop/        # mismas rutas que main, más pruebas de arquitectura
 - Una `Api` puede devolver o publicar tipos públicos de `api` (por ejemplo `PeliculaResumen`), nunca entidades.
 - No hay comunicación por eventos entre módulos: solo llamadas a la `Api` del otro módulo. Al borrar una película no se borran en cascada sus valoraciones, marcas ni líneas de carrito; las lecturas ignoran las películas inexistentes.
 - No se permiten dependencias cíclicas entre módulos.
+- Spring Modulith (`ModulithTest`) verifica los límites en cada build: `api` de cada módulo es `@NamedInterface("api")` y `compartido` es un módulo abierto.
 - `compartido` no depende de ningún módulo.
 
 ## Casos de uso y transporte de datos
