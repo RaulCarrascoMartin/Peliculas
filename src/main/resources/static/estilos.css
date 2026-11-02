@@ -37,3 +37,9 @@ button:disabled { opacity: .5; cursor: default; }
 #aviso.error { background: var(--peligro); color: #fff; }
 .vacio { color: var(--suave); text-align: center; padding: 24px; grid-column: 1 / -1; }
 [hidden] { display: none !important; }
+.precio { font-weight: 600; margin: .25rem 0; }
+.linea-carrito { display: flex; gap: 1rem; align-items: center; justify-content: space-between; padding: .4rem 0; border-bottom: 1px solid #ddd; }
+.linea-carrito span:first-child { flex: 1; }
+.total { font-size: 1.2rem; font-weight: 700; margin: .75rem 0; text-align: right; }
+.compra { border: 1px solid #ddd; border-radius: 6px; padding: .75rem 1rem; margin-bottom: 1rem; }
+.compra h3 { margin: 0 0 .5rem; font-size: 1rem; }

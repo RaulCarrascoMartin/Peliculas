@@ -17,6 +17,8 @@
                 { url: "/contratos/compras-api.yml", name: "Compras" }
             ],
             dom_id: "#swagger-ui",
+            presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+            layout: "StandaloneLayout",
             persistAuthorization: true,
             docExpansion: "none"
         });

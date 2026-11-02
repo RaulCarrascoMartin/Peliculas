@@ -10,7 +10,10 @@ const estado = {
   pagina: 0,
   filtros: {},
   editando: null,
+  carrito: new Set(),
 };
+
+const euros = (n) => (n == null ? "—" : Number(n).toLocaleString("es-ES", { style: "currency", currency: "EUR" }));
 
 // ---------- utilidades ----------
 
@@ -93,6 +96,7 @@ function cerrarSesion(conAviso) {
   estado.token = null;
   estado.favoritas.clear();
   estado.vistas.clear();
+  estado.carrito.clear();
   localStorage.removeItem("token");
   pintarSesion();
   mostrarVista("catalogo");
@@ -136,6 +140,96 @@ async function alternarMarca(id, lista) {
   await refrescar();
 }
 
+// ---------- carrito ----------
+
+async function cargarCarrito() {
+  if (!estado.token) return null;
+  try {
+    const carrito = await api("/api/carrito");
+    estado.carrito = new Set(carrito.lineas.map((l) => l.peliculaId));
+    $("#contador-carrito").textContent = carrito.lineas.length ? `(${carrito.lineas.length})` : "";
+    return carrito;
+  } catch { return null; }
+}
+
+async function anadirAlCarrito(id) {
+  try {
+    await api("/api/carrito/lineas", { metodo: "POST", cuerpo: { peliculaId: id } });
+    aviso("Añadida al carrito");
+    await cargarCarrito();
+    await refrescar();
+  } catch { /* aviso mostrado */ }
+}
+
+async function pintarCarrito() {
+  const carrito = await cargarCarrito();
+  const caja = $("#lista-carrito");
+  caja.replaceChildren();
+  if (!carrito) return;
+  $("#vaciar-carrito").hidden = !carrito.lineas.length;
+  $("#finalizar-compra").hidden = !carrito.lineas.length;
+  $("#total-carrito").textContent = carrito.lineas.length ? `Total: ${euros(carrito.total)}` : "";
+  if (!carrito.lineas.length) {
+    caja.innerHTML = '<div class="vacio">El carrito está vacío.</div>';
+    return;
+  }
+  for (const l of carrito.lineas) {
+    const fila = document.createElement("div");
+    fila.className = "linea-carrito";
+    fila.innerHTML = `<span>${escapar(l.titulo)}</span><span>${euros(l.precio)}</span>`;
+    const quitar = document.createElement("button");
+    quitar.textContent = "Quitar";
+    quitar.className = "secundario";
+    quitar.onclick = async () => {
+      try {
+        await api(`/api/carrito/lineas/${l.peliculaId}`, { metodo: "DELETE" });
+        await refrescar();
+      } catch { /* aviso mostrado */ }
+    };
+    fila.append(quitar);
+    caja.append(fila);
+  }
+}
+
+async function pintarCompras() {
+  const compras = await api("/api/compras");
+  const caja = $("#lista-compras");
+  caja.replaceChildren();
+  if (!compras.length) {
+    caja.innerHTML = '<div class="vacio">Todavía no has comprado nada.</div>';
+    return;
+  }
+  for (const c of compras) {
+    const nodo = document.createElement("article");
+    nodo.className = "compra";
+    const fecha = new Date(c.fecha).toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "short" });
+    nodo.innerHTML = `
+      <h3>Compra #${escapar(c.id)} · ${escapar(fecha)}</h3>
+      ${c.lineas.map((l) => `<div class="linea-carrito"><span>${escapar(l.titulo)}</span><span>${euros(l.precioUnitario)}</span></div>`).join("")}
+      <div class="total">Total: ${euros(c.total)}</div>`;
+    caja.append(nodo);
+  }
+}
+
+$("#finalizar-compra").onclick = async (e) => {
+  const boton = e.currentTarget;
+  boton.disabled = true;
+  try {
+    const compra = await api("/api/compras", { metodo: "POST" });
+    aviso(`Compra realizada · ${euros(compra.total)}`);
+  } catch { /* aviso mostrado (p. ej. 409 si el carrito cambió) */ }
+  finally { boton.disabled = false; }
+  await refrescar();
+};
+
+$("#vaciar-carrito").onclick = async () => {
+  try {
+    await api("/api/carrito", { metodo: "DELETE" });
+    aviso("Carrito vaciado");
+    await refrescar();
+  } catch { /* aviso mostrado */ }
+};
+
 // ---------- tarjetas ----------
 
 function tarjeta(p, { acciones = true } = {}) {
@@ -145,7 +239,8 @@ function tarjeta(p, { acciones = true } = {}) {
   nodo.innerHTML = `
     <h3>${escapar(p.titulo)}</h3>
     <div class="meta">${escapar(p.anio)} · ${escapar(p.genero)} · ${escapar(p.director)}</div>
-    <div class="media">${media}</div>`;
+    <div class="media">${media}</div>
+    <div class="precio">${euros(p.precio)}</div>`;
   if (!acciones) return nodo;
 
   const caja = document.createElement("div");
@@ -157,6 +252,16 @@ function tarjeta(p, { acciones = true } = {}) {
       boton.textContent = `${icono} ${lista}`;
       boton.className = activa ? "activo" : "secundario";
       boton.onclick = () => alternarMarca(p.id, lista).catch(() => {});
+      caja.append(boton);
+    }
+    if (acciones) {
+      const enCarrito = estado.carrito.has(p.id);
+      const boton = document.createElement("button");
+      boton.textContent = enCarrito ? "🛒 En el carrito" : "🛒 Añadir";
+      boton.className = enCarrito ? "activo" : "secundario";
+      boton.disabled = enCarrito || p.precio == null;
+      boton.title = p.precio == null ? "Película sin precio" : "";
+      boton.onclick = () => anadirAlCarrito(p.id);
       caja.append(boton);
     }
     const form = document.createElement("form");
@@ -245,7 +350,7 @@ $("#form-filtros").addEventListener("reset", () => {
 function empezarEdicion(p) {
   estado.editando = p.id;
   const form = $("#form-pelicula");
-  for (const campo of ["titulo", "anio", "genero", "director"]) form.elements[campo].value = p[campo];
+  for (const campo of ["titulo", "anio", "genero", "director", "precio"]) form.elements[campo].value = p[campo];
   $("#titulo-form-pelicula").textContent = `Editando "${p.titulo}"`;
   $("#cancelar-edicion").hidden = false;
   form.scrollIntoView({ behavior: "smooth" });
@@ -264,6 +369,7 @@ $("#form-pelicula").addEventListener("submit", async (e) => {
   e.preventDefault();
   const datos = Object.fromEntries(new FormData(e.target));
   datos.anio = Number(datos.anio);
+  datos.precio = Number(datos.precio);
   const edicion = estado.editando !== null;
   try {
     await api(edicion ? `/api/peliculas/${estado.editando}` : "/api/peliculas", {
@@ -294,13 +400,17 @@ function mostrarVista(vista) {
   vistaActual = vista;
   document.querySelectorAll("#pestanas button").forEach((b) => b.classList.toggle("activa", b.dataset.vista === vista));
   $("#vista-catalogo").hidden = vista !== "catalogo";
-  $("#vista-marcadas").hidden = vista === "catalogo";
+  $("#vista-marcadas").hidden = ["catalogo", "carrito", "compras"].includes(vista);
+  $("#vista-compras").hidden = vista !== "compras";
+  $("#vista-carrito").hidden = vista !== "carrito";
   refrescar();
 }
 
 async function refrescar() {
   try {
-    if (vistaActual === "catalogo") await cargarCatalogo();
+    if (vistaActual === "catalogo") { await cargarCarrito(); await cargarCatalogo(); }
+    else if (vistaActual === "carrito") await pintarCarrito();
+    else if (vistaActual === "compras") await pintarCompras();
     else await cargarMarcadas(vistaActual);
   } catch { /* aviso mostrado */ }
 }
