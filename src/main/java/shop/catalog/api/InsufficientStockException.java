@@ -1,6 +1,6 @@
 package shop.catalog.api;
 
-/** No hay unidades suficientes de un producto para atender la reserva. */
+/** There are not enough units of a product to fulfil the reservation. */
 public class InsufficientStockException extends RuntimeException {
 
     private final Long productId;

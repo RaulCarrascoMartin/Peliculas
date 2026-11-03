@@ -1,6 +1,6 @@
 package shop.catalog.api;
 
-/** Cantidad de un producto que se pide reservar o liberar. */
+/** Quantity of a product requested to be reserved or released. */
 public record StockLine(
         Long productId,
         int quantity) {

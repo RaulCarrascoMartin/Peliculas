@@ -3,27 +3,27 @@ package shop.catalog.api;
 import java.util.Collection;
 import java.util.List;
 
-/** API pública del módulo {@code pelicula}: lo único que otros módulos pueden usar. */
+/** Public API of the {@code catalog} module: the only thing other modules may use. */
 public interface CatalogApi {
 
-    boolean existe(Long id);
+    boolean exists(Long id);
 
-    /** Guarda la media calculada por otro módulo; lanza 404 si la película no existe. */
-    void actualizarValoracionMedia(Long id, Double media);
+    /** Stores the average computed by another module; throws 404 if the movie does not exist. */
+    void updateAverageRating(Long id, Double media);
 
-    /** Datos de las películas pedidas, ordenadas por id; los ids inexistentes se ignoran. */
-    List<PeliculaResumen> resumenes(Collection<Long> ids);
+    /** Data of the requested movies, sorted by id; unknown ids are ignored. */
+    List<MovieSummary> findSummaries(Collection<Long> ids);
 
     /**
-     * Reserva unidades de todas las líneas o de ninguna: si una falla, el stock queda como estaba.
-     * Devuelve una línea por cada línea pedida, con el título y el precio del momento.
+     * Reserves units of all the lines or of none: if one fails, the stock stays as it was.
+     * Returns one line per requested line, with the title and price at that moment.
      *
-     * @throws UnknownProductException        si algún producto no existe
-     * @throws ProductNotPurchasableException si algún producto no tiene precio
-     * @throws InsufficientStockException     si no hay unidades suficientes de algún producto
+     * @throws UnknownProductException        if any product does not exist
+     * @throws ProductNotPurchasableException if any product has no price
+     * @throws InsufficientStockException     if there are not enough units of any product
      */
     List<ReservedLine> reserve(List<StockLine> lines);
 
-    /** Devuelve al stock las unidades indicadas; ignora los productos que ya no existen. */
+    /** Returns the given units to the stock; ignores products that no longer exist. */
     void release(List<StockLine> lines);
 }

@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-/** Pedido con sus líneas tal como lo devuelven los casos de uso: el modelo no sale de {@code usecase}. */
+/** Order with its lines as returned by the use cases: the model does not leave {@code usecase}. */
 public record OrderView(
         Long id,
         Long userId,

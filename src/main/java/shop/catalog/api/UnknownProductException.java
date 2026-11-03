@@ -1,6 +1,6 @@
 package shop.catalog.api;
 
-/** El producto pedido no existe en el catálogo. */
+/** The requested product does not exist in the catalog. */
 public class UnknownProductException extends RuntimeException {
 
     private final Long productId;

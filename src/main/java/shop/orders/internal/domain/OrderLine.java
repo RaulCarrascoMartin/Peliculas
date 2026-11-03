@@ -2,7 +2,7 @@ package shop.orders.internal.domain;
 
 import java.math.BigDecimal;
 
-/** Línea de pedido; {@code unitPrice} es el precio capturado al reservar, no el vigente del catálogo. */
+/** Order line; {@code unitPrice} is the price captured at reservation, not the current catalog one. */
 public class OrderLine {
 
     private Long productId;

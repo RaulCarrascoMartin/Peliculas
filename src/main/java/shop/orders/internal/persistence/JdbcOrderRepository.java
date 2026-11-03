@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-/** Persistencia JDBC de pedidos sobre las tablas {@code orders} y {@code order_lines} de {@code init.sql}. */
+/** JDBC persistence of orders over the {@code orders} and {@code order_lines} tables of {@code init.sql}. */
 @Repository
 public class JdbcOrderRepository implements OrderRepository {
 
@@ -27,21 +27,21 @@ public class JdbcOrderRepository implements OrderRepository {
     @Override
     public Order save(Order order) {
         Instant createdAt = order.getCreatedAt() != null ? order.getCreatedAt() : Instant.now();
-        KeyHolder claves = new GeneratedKeyHolder();
+        KeyHolder keys = new GeneratedKeyHolder();
         jdbc.sql("insert into orders (user_id, status, total, created_at) values (?, ?, ?, ?)")
                 .param(order.getUserId())
                 .param(order.getStatus().name())
                 .param(order.getTotal())
                 .param(Timestamp.from(createdAt))
-                .update(claves, "id");
-        Long id = claves.getKey().longValue();
-        for (OrderLine linea : order.getLines()) {
+                .update(keys, "id");
+        Long id = keys.getKey().longValue();
+        for (OrderLine line : order.getLines()) {
             jdbc.sql("insert into order_lines (order_id, product_id, title, unit_price, quantity) values (?, ?, ?, ?, ?)")
                     .param(id)
-                    .param(linea.getProductId())
-                    .param(linea.getTitle())
-                    .param(linea.getUnitPrice())
-                    .param(linea.getQuantity())
+                    .param(line.getProductId())
+                    .param(line.getTitle())
+                    .param(line.getUnitPrice())
+                    .param(line.getQuantity())
                     .update();
         }
         order.setId(id);
@@ -51,7 +51,7 @@ public class JdbcOrderRepository implements OrderRepository {
 
     @Override
     public Optional<Order> findById(Long id) {
-        Optional<Order> pedido = jdbc.sql("select id, user_id, status, total, created_at from orders where id = ?")
+        Optional<Order> quantities = jdbc.sql("select id, user_id, status, total, created_at from orders where id = ?")
                 .param(id)
                 .query((rs, n) -> {
                     Order o = new Order();
@@ -63,11 +63,11 @@ public class JdbcOrderRepository implements OrderRepository {
                     return o;
                 })
                 .optional();
-        pedido.ifPresent(o -> o.setLines(lineasDe(id)));
-        return pedido;
+        quantities.ifPresent(o -> o.setLines(linesOf(id)));
+        return quantities;
     }
 
-    private List<OrderLine> lineasDe(Long orderId) {
+    private List<OrderLine> linesOf(Long orderId) {
         return jdbc.sql("select product_id, title, unit_price, quantity from order_lines where order_id = ? order by id")
                 .param(orderId)
                 .query((rs, n) -> {

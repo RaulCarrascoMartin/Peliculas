@@ -2,7 +2,7 @@ package shop.catalog.api;
 
 import java.math.BigDecimal;
 
-/** Línea reservada con el título y el precio unitario capturados en el momento de la reserva. */
+/** Reserved line with the title and unit price captured at reservation time. */
 public record ReservedLine(
         Long productId,
         String title,

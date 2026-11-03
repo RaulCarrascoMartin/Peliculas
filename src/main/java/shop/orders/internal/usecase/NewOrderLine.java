@@ -1,6 +1,6 @@
 package shop.orders.internal.usecase;
 
-/** Línea pedida por el cliente: producto y cantidad, sin precio (lo captura la reserva). */
+/** Line requested by the customer: product and quantity, without price (the reservation captures it). */
 public record NewOrderLine(
         Long productId,
         int quantity) {

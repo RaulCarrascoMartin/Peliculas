@@ -2,14 +2,14 @@ package shop.orders.internal.domain;
 
 import java.util.Optional;
 
-/** Persistencia de pedidos; la implementación usa JDBC y vive en {@code internal.persistence}. */
+/** Order persistence; the implementation uses JDBC and lives in {@code internal.persistence}. */
 public interface OrderRepository {
 
-    /** Inserta el pedido y sus líneas y devuelve el pedido con el id asignado. */
+    /** Inserts the order and its lines and returns the order with the assigned id. */
     Order save(Order order);
 
     Optional<Order> findById(Long id);
 
-    /** Pasa a CANCELLED solo si sigue en CREATED; devuelve {@code false} si no había nada que cancelar. */
+    /** Moves to CANCELLED only if it is still CREATED; returns {@code false} if there was nothing to cancel. */
     boolean cancelIfCreated(Long id);
 }

@@ -6,46 +6,46 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import shop.compartido.error.GlobalExceptionHandler;
+import shop.shared.error.GlobalExceptionHandler;
 import shop.orders.internal.usecase.CancelOrder;
-import shop.orders.internal.usecase.CatalogApiFalsa;
+import shop.orders.internal.usecase.CatalogApiFake;
 import shop.orders.internal.usecase.CreateOrder;
 import shop.orders.internal.usecase.GetOrder;
-import shop.orders.internal.usecase.OrderRepositoryFalso;
+import shop.orders.internal.usecase.OrderRepositoryFake;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Capa de presentación de pedidos con los módulos doblados: catálogo y persistencia en memoria. */
+/** Orders presentation layer with the modules doubled: catalog and persistence in memory. */
 class OrdersControllerTest {
 
-    private CatalogApiFalsa catalogo;
+    private CatalogApiFake catalog;
     private MockMvc mvc;
 
     @BeforeEach
-    void preparar() {
-        catalogo = new CatalogApiFalsa();
-        catalogo.crearProducto(1L, "Alien", "12.99", 5);
-        var pedidos = new OrderRepositoryFalso();
+    void setUp() {
+        catalog = new CatalogApiFake();
+        catalog.createProduct(1L, "Alien", "12.99", 5);
+        var orders = new OrderRepositoryFake();
         mvc = MockMvcBuilders.standaloneSetup(new OrdersController(
-                        new CreateOrder(catalogo, pedidos), new GetOrder(pedidos), new CancelOrder(catalogo, pedidos)))
+                        new CreateOrder(catalog, orders), new GetOrder(orders), new CancelOrder(catalog, orders)))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
 
-    private ResultActions crear(String json) throws Exception {
+    private ResultActions create(String json) throws Exception {
         return mvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON).content(json));
     }
 
-    private static String pedido(long productId, int quantity) {
+    private static String quantities(long productId, int quantity) {
         return "{\"userId\":7,\"lines\":[{\"productId\":" + productId + ",\"quantity\":" + quantity + "}]}";
     }
 
     @Test
-    void postValidoDevuelve201ConElPedidoYLosPreciosCapturados() throws Exception {
-        crear(pedido(1, 2))
+    void validPostReturns201WithOrderAndCapturedPrices() throws Exception {
+        create(quantities(1, 2))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.status").value("CREATED"))
@@ -58,25 +58,25 @@ class OrdersControllerTest {
     }
 
     @Test
-    void postInvalidoDevuelve400() throws Exception {
-        crear("{\"userId\":7,\"lines\":[]}").andExpect(status().isBadRequest());
-        crear("{\"userId\":7,\"lines\":[{\"productId\":1,\"quantity\":0}]}").andExpect(status().isBadRequest());
-        crear("{\"lines\":[{\"productId\":1,\"quantity\":1}]}").andExpect(status().isBadRequest());
+    void invalidPostReturns400() throws Exception {
+        create("{\"userId\":7,\"lines\":[]}").andExpect(status().isBadRequest());
+        create("{\"userId\":7,\"lines\":[{\"productId\":1,\"quantity\":0}]}").andExpect(status().isBadRequest());
+        create("{\"lines\":[{\"productId\":1,\"quantity\":1}]}").andExpect(status().isBadRequest());
     }
 
     @Test
-    void postConProductoDesconocidoDevuelve404() throws Exception {
-        crear(pedido(99, 1)).andExpect(status().isNotFound());
+    void postWithUnknownProductReturns404() throws Exception {
+        create(quantities(99, 1)).andExpect(status().isNotFound());
     }
 
     @Test
-    void postSinStockDevuelve409() throws Exception {
-        crear(pedido(1, 6)).andExpect(status().isConflict());
+    void postWithoutStockReturns409() throws Exception {
+        create(quantities(1, 6)).andExpect(status().isConflict());
     }
 
     @Test
-    void getDevuelve200ConElPedidoYDa404SiNoExiste() throws Exception {
-        crear(pedido(1, 1)).andExpect(status().isCreated());
+    void getReturns200WithOrderAnd404IfMissing() throws Exception {
+        create(quantities(1, 1)).andExpect(status().isCreated());
 
         mvc.perform(get("/api/orders/1"))
                 .andExpect(status().isOk())
@@ -85,8 +85,8 @@ class OrdersControllerTest {
     }
 
     @Test
-    void cancelDevuelve200Despues409YDa404SiNoExiste() throws Exception {
-        crear(pedido(1, 1)).andExpect(status().isCreated());
+    void cancelReturns200Then409AndThen404IfMissing() throws Exception {
+        create(quantities(1, 1)).andExpect(status().isCreated());
 
         mvc.perform(post("/api/orders/1/cancel"))
                 .andExpect(status().isOk())

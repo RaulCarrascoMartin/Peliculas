@@ -1,6 +1,6 @@
 package shop.catalog.api;
 
-/** El producto existe pero no tiene precio, así que no se puede reservar para una compra. */
+/** The product exists but has no price, so it cannot be reserved for a purchase. */
 public class ProductNotPurchasableException extends RuntimeException {
 
     private final Long productId;

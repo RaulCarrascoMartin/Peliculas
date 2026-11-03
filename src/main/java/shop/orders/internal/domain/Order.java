@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Pedido anémico: solo datos. Las reglas (reservar, cancelar) viven en los casos de uso. */
+/** Anemic order: data only. The rules (reserve, cancel) live in the use cases. */
 public class Order {
 
     private Long id;

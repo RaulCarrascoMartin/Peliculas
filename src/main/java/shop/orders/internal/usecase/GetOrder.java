@@ -1,7 +1,7 @@
 package shop.orders.internal.usecase;
 
 import org.springframework.stereotype.Service;
-import shop.compartido.error.RecursoNoEncontradoException;
+import shop.shared.error.ResourceNotFoundException;
 import shop.orders.internal.domain.OrderRepository;
 
 @Service
@@ -16,6 +16,6 @@ public class GetOrder {
     public OrderView execute(Long id) {
         return orders.findById(id)
                 .map(OrderView::of)
-                .orElseThrow(() -> new RecursoNoEncontradoException("El pedido " + id + " no existe"));
+                .orElseThrow(() -> new ResourceNotFoundException("El pedido " + id + " no existe"));
     }
 }

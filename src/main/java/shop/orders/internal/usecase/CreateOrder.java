@@ -7,8 +7,8 @@ import shop.catalog.api.ProductNotPurchasableException;
 import shop.catalog.api.ReservedLine;
 import shop.catalog.api.StockLine;
 import shop.catalog.api.UnknownProductException;
-import shop.compartido.error.ConflictoException;
-import shop.compartido.error.RecursoNoEncontradoException;
+import shop.shared.error.ConflictException;
+import shop.shared.error.ResourceNotFoundException;
 import shop.orders.internal.domain.Order;
 import shop.orders.internal.domain.OrderLine;
 import shop.orders.internal.domain.OrderRepository;
@@ -19,10 +19,10 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Reserva el stock de todas las líneas por {@link CatalogApi} (que captura el precio del momento) y guarda
- * el pedido. No hay transacción en este hito: si el guardado falla después de reservar, el stock queda
- * reservado sin pedido; se resolverá en el hito 07. Los errores del catálogo se traducen aquí a los de
- * negocio comunes (404 y 409); las excepciones del catálogo no salen de este caso de uso.
+ * Reserves the stock of all lines through {@link CatalogApi} (which captures the price at that moment) and saves
+ * the order. There is no transaction in this milestone: if saving fails after reserving, the stock stays
+ * reserved without an order; this will be solved in milestone 07. Catalog errors are translated here to the
+ * common business ones (404 and 409); catalog exceptions do not leave this use case.
  */
 @Service
 public class CreateOrder {
@@ -52,9 +52,9 @@ public class CreateOrder {
         try {
             return catalog.reserve(lines.stream().map(l -> new StockLine(l.productId(), l.quantity())).toList());
         } catch (UnknownProductException e) {
-            throw new RecursoNoEncontradoException(e.getMessage());
+            throw new ResourceNotFoundException(e.getMessage());
         } catch (InsufficientStockException | ProductNotPurchasableException e) {
-            throw new ConflictoException(e.getMessage());
+            throw new ConflictException(e.getMessage());
         }
     }
 
