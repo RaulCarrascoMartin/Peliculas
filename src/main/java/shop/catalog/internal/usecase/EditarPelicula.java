@@ -24,6 +24,7 @@ public class EditarPelicula {
         existente.setGenero(datos.genero());
         existente.setDirector(datos.director());
         existente.setPrecio(datos.precio());
+
         if (datos.stock() != null) {
             existente.setStock(datos.stock());
         }

@@ -34,8 +34,10 @@ public class ReservarStock {
         Map<Long, Integer> pedidoPorProducto = agrupar(lineas);
         Map<Long, Pelicula> existentes = peliculas.findAllById(pedidoPorProducto.keySet()).stream()
                 .collect(Collectors.toMap(Pelicula::getId, Function.identity()));
+
         validar(pedidoPorProducto, existentes);
         descontar(pedidoPorProducto);
+
         return lineas.stream()
                 .map(l -> {
                     Pelicula p = existentes.get(l.productId());
