@@ -4,12 +4,12 @@ info:
   description: Historial y finalizacion de compras del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
   version: 1.0.0
 tags:
-  - name: PurchasesRest
+  - name: PurchasesHttp
     description: Compras del usuario actual
 paths:
   /api/compras:
     post:
-      tags: [PurchasesRest]
+      tags: [PurchasesHttp]
       operationId: completePurchase
       summary: Finaliza la compra con el contenido del carrito (checkout atomico)
       responses:
@@ -33,7 +33,7 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictoCompra'
     get:
-      tags: [PurchasesRest]
+      tags: [PurchasesHttp]
       operationId: listPurchases
       summary: Historial de compras del usuario, ordenado por fecha descendente
       responses:
@@ -49,7 +49,7 @@ paths:
           $ref: '#/components/responses/NoAutenticado'
   /api/compras/{compraId}:
     get:
-      tags: [PurchasesRest]
+      tags: [PurchasesHttp]
       operationId: purchaseDetail
       summary: Detalle de una compra propia (una ajena o inexistente responde 404, nunca 403)
       parameters:

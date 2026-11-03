@@ -169,8 +169,8 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/static/contratos/carrito-api.yml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>shop.cart.internal.web.api</apiPackage>
-                            <modelPackage>shop.cart.internal.web.dto</modelPackage>
+                            <apiPackage>shop.cart.api.http</apiPackage>
+                            <modelPackage>shop.cart.api.http.dto</modelPackage>
                             <configOptions>
                                 <useSpringBoot4>true</useSpringBoot4>
                                 <useJackson3>true</useJackson3>
@@ -198,8 +198,8 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/static/contratos/compras-api.yml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>shop.purchase.internal.web.api</apiPackage>
-                            <modelPackage>shop.purchase.internal.web.dto</modelPackage>
+                            <apiPackage>shop.purchase.api.http</apiPackage>
+                            <modelPackage>shop.purchase.api.http.dto</modelPackage>
                             <configOptions>
                                 <useSpringBoot4>true</useSpringBoot4>
                                 <useJackson3>true</useJackson3>
@@ -227,8 +227,8 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/static/contratos/orders-api.yml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>shop.orders.internal.web.api</apiPackage>
-                            <modelPackage>shop.orders.internal.web.dto</modelPackage>
+                            <apiPackage>shop.orders.api.http</apiPackage>
+                            <modelPackage>shop.orders.api.http.dto</modelPackage>
                             <configOptions>
                                 <useSpringBoot4>true</useSpringBoot4>
                                 <useJackson3>true</useJackson3>

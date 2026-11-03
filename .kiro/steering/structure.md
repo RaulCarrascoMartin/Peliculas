@@ -5,21 +5,53 @@ Monolito modular: una única aplicación desplegable dividida en módulos por fu
 ```
 src/main/java/shop/
 ├── ShopApplication.java          # punto de entrada (Spring Boot)
-├── <modulo>/                     # catalog, orders, valoracion, autenticacion, carrito, compra
-│   ├── api/                      # parte pública: lo único que ven otros módulos
-│   │   └── XxxApi y records públicos (p. ej. CatalogApi, PeliculaResumen, CarritoApi)
-│   └── internal/                 # parte interna: nadie fuera del módulo la usa
-│       ├── XxxApiImpl            # record que implementa la Api; único punto de salida hacia otros módulos
-│       ├── 
-│       ├── domain/               # entidades y repositorios (Spring Data `JpaRepository`)
-│       ├── usecase/              # un caso de uso por `record` con `ejecutar(...)`, más los records de entrada/salida (p. ej. CrearPelicula, FinalizarCompra, CompraVista)
-│       └── web/                  # controladores REST y DTOs (o interfaces generadas desde el contrato OpenAPI)
-└── compartido/                   # utilidades comunes; no depende de ningún módulo
-    ├── error/                    # RecursoNoEncontradoException, ConflictoException, ValidacionException, ErrorRespuesta, GlobalExceptionHandler
-    └── seguridad/                # SecurityConfig, JwtFilter, JwtTokens, DatosToken, UsuarioActual
-src/test/java/shop/        # mismas rutas que main, más pruebas de arquitectura
+├── app/                          # raíz de composición: @Configuration por módulo que cablea las implementaciones; sin lógica
+├── <modulo>/                     # catalog, rating, authentication, cart, purchase, orders
+│   ├── package-info.java         # @ApplicationModule: nombre y allowedDependencies (p. ej. "catalog::facade")
+│   ├── api/
+│   │   ├── facade/               # API pública entre módulos (@NamedInterface("facade") también en sus subpaquetes)
+│   │   │   ├── XxxFacade         #   interfaz
+│   │   │   ├── dto/              #   records del contrato (*Dto)
+│   │   │   └── exception/        #   excepciones del contrato
+│   │   └── http/                 # contrato HTTP (XxxHttpApi generado del OpenAPI)
+│   │       ├── controller/       #   controladores
+│   │       ├── dto/              #   DTO web (generados o *Request/*Response)
+│   │       └── mapper/           #   *WebMapper: vista de caso de uso -> DTO
+│   └── internal/                 # privado del módulo
+│       ├── application/
+│       │   ├── usecase/          #   casos de uso (`execute(...)`)
+│       │   ├── dto/              #   *View, *Data y entradas de los casos de uso (records)
+│       │   ├── mapper/           #   modelo -> vista
+│       │   └── facade/           #   XxxFacadeImpl
+│       ├── domain/
+│       │   ├── model/            #   POJOs, enums y value objects, sin frameworks
+│       │   ├── service/          #   XxxService + XxxServiceImpl (las reglas de negocio)
+│       │   ├── repository/       #   interfaces de repositorio
+│       │   ├── contract/         #   lo que el módulo necesita de otros (MovieCatalog, UserCart, StockReservation…)
+│       │   └── exception/        #   excepciones de negocio
+│       ├── infrastructure/       # piezas técnicas: hash de contraseñas, emisión de tokens
+│       └── persistence/
+│           ├── entity/           #   XxxEntity (JPA)
+│           ├── jpa/              #   XxxJpaRepository (Spring Data)
+│           ├── repository/       #   XxxRepositoryImpl (implementa el dominio)
+│           ├── mapper/           #   XxxPersistenceMapper
+│           └── adapter/          #   adaptadores hacia la facade de otros módulos
+└── shared/                       # utilidades comunes (módulo abierto); no depende de ningún módulo
+    ├── error/                    # excepciones de negocio, ApiError, GlobalExceptionHandler
+    ├── pagination/               # PageQuery y PageResult (paginación sin Spring)
+    └── security/                 # SecurityConfig, JwtFilter, JwtTokens, TokenData, CurrentUser
+src/test/java/shop/               # mismas rutas que main, más pruebas de arquitectura
 .kiro/specs/                      # specs (requirements, design, tasks)
 ```
+
+## Reglas de la estructura modular
+- Las reglas de negocio viven en los servicios de `domain`; los casos de uso de `application` solo coordinan (transacción, mapeo a `*View`) y reciben el `userId` como parámetro (el controlador lo obtiene de `CurrentUser`).
+- `domain` y `application` no dependen de Spring, JPA, validación, Hibernate ni MapStruct. Las clases internas son POJOs con constructor; solo `app` (y `api.http`, `persistence`, `infrastructure`) usan el framework. Las transacciones se declaran con `jakarta.transaction.Transactional`.
+- Los beans de `application`, `persistence` e `infrastructure` se crean en `shop.app` con `@Bean`; los controladores (`api.http`) se detectan por `@RestController`.
+- El módulo consumidor define su propio contrato en `domain` (p. ej. `MovieCatalog`) y un adaptador en `persistence` lo traduce a la `facade` del proveedor. Los casos de uso nunca ven tipos de otro módulo.
+- `api.http` solo ve `application` (y enums de dominio usados como parámetro); nunca modelos ni entidades.
+- Spring Modulith usa `spring.modulith.detection-strategy=explicitly-annotated`: solo los paquetes con `@ApplicationModule` son módulos (`shop.app` no lo es y es el único que ve el `internal` de todos).
+- `ArchitectureTest` y `ModulithTest` verifican estas reglas en cada build.
 
 ## Módulo orders (P6)
 - `orders` usa persistencia JDBC (`JdbcClient`) en lugar de JPA: `internal/domain` tiene `Order`, `OrderLine` y la interfaz `OrderRepository`; `internal/persistence` tiene `JdbcOrderRepository`. Sus tablas (`orders`, `order_lines`) están en `src/main/resources/init.sql`.

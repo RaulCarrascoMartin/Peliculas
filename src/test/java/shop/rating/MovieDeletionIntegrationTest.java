@@ -2,8 +2,8 @@ package shop.rating;
 
 import com.jayway.jsonpath.JsonPath;
 import shop.shared.security.JwtTokens;
-import shop.rating.internal.domain.MovieMarkRepository;
-import shop.rating.internal.domain.RatingRepository;
+import shop.rating.internal.domain.repository.MovieMarkRepository;
+import shop.rating.internal.domain.repository.RatingRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +110,7 @@ class MovieDeletionIntegrationTest {
                 .andExpect(status().isNoContent());
 
         assertEquals(1, ratings.findByMovieId(preserved).size());
-        var favorites = marks.findByUserIdAndType(302L, shop.rating.internal.domain.MarkType.FAVORITA);
+        var favorites = marks.findByUserIdAndType(302L, shop.rating.internal.domain.model.MarkType.FAVORITA);
         assertTrue(favorites.stream().anyMatch(m -> m.getMovieId().equals(preserved)));
         mvc.perform(get("/api/usuarios/me/favoritas").header("Authorization", bearer(302, "USUARIO")))
                 .andExpect(jsonPath("$.length()").value(1))

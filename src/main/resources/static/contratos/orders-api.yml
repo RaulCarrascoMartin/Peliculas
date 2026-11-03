@@ -4,12 +4,12 @@ info:
   description: Creacion, consulta y cancelacion de pedidos. Crear un pedido reserva stock en el catalogo y captura el precio unitario de cada linea en ese momento; cancelarlo devuelve el stock. El campo userId de OrderRequest es provisional y se eliminara en el hito 08, cuando el usuario se deduzca del token. Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
   version: 0.2.0
 tags:
-  - name: OrdersRest
+  - name: OrdersHttp
     description: Pedidos
 paths:
   /api/orders:
     post:
-      tags: [OrdersRest]
+      tags: [OrdersHttp]
       operationId: createOrder
       summary: Crea un pedido y reserva el stock de todas sus lineas (o de ninguna)
       requestBody:
@@ -47,7 +47,7 @@ paths:
                 $ref: '#/components/schemas/ErrorRespuesta'
   /api/orders/{id}:
     get:
-      tags: [OrdersRest]
+      tags: [OrdersHttp]
       operationId: getOrder
       summary: Consulta un pedido
       parameters:
@@ -65,7 +65,7 @@ paths:
           $ref: '#/components/responses/OrderNotFound'
   /api/orders/{id}/cancel:
     post:
-      tags: [OrdersRest]
+      tags: [OrdersHttp]
       operationId: cancelOrder
       summary: Cancela un pedido en estado CREATED y devuelve su stock al catalogo
       parameters:

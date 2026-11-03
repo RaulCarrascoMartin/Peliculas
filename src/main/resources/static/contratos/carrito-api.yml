@@ -4,12 +4,12 @@ info:
   description: Endpoints del carrito del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
   version: 1.0.0
 tags:
-  - name: CartRest
+  - name: CartHttp
     description: Carrito del usuario actual
 paths:
   /api/carrito:
     get:
-      tags: [CartRest]
+      tags: [CartHttp]
       operationId: viewCart
       summary: Carrito actual (vacio con total cero si aun no existe)
       responses:
@@ -28,7 +28,7 @@ paths:
         '401':
           $ref: '#/components/responses/NoAutenticado'
     delete:
-      tags: [CartRest]
+      tags: [CartHttp]
       operationId: clearCart
       summary: Vacia el carrito (idempotente)
       responses:
@@ -38,7 +38,7 @@ paths:
           $ref: '#/components/responses/NoAutenticado'
   /api/carrito/lineas:
     post:
-      tags: [CartRest]
+      tags: [CartHttp]
       operationId: addLine
       summary: Anade una pelicula al carrito (crea el carrito si es la primera)
       requestBody:
@@ -70,7 +70,7 @@ paths:
           $ref: '#/components/responses/ConflictoLinea'
   /api/carrito/lineas/{peliculaId}:
     delete:
-      tags: [CartRest]
+      tags: [CartHttp]
       operationId: removeLine
       summary: Quita una pelicula del carrito
       parameters:

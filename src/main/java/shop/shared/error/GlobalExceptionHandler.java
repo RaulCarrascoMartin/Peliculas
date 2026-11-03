@@ -85,6 +85,11 @@ public class GlobalExceptionHandler {
         return response(HttpStatus.BAD_REQUEST, "Parámetro con formato no válido", Map.of());
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiError> invalidCredentials(InvalidCredentialsException ex) {
+        return response(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas", Map.of());
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> unauthenticated(AuthenticationException ex) {
         return response(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas", Map.of());
