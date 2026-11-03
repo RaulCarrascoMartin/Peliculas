@@ -144,7 +144,7 @@ class MovieUseCasesTest {
         var page = search.execute(null, null, null, null, PageQuery.of(1, 2));
 
         assertEquals(5, page.total());
-        assertEquals(3, (int) Math.ceil(page.total() / 2.0));
+        assertEquals(3, page.totalPages());
         assertEquals(2, page.content().size());
         assertEquals("Película 3", page.content().get(0).title());
     }

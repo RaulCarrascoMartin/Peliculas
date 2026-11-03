@@ -2,6 +2,8 @@ package shop.purchase.internal.domain.fake;
 
 import shop.purchase.internal.domain.contract.UserCart;
 
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,13 @@ import java.util.Map;
 public class UserCartFake implements UserCart {
 
     private final Map<Long, List<Long>> carts = new HashMap<>();
+
+    private boolean failOnClearWithOptimisticLock;
+
+    /** Simulates the second simultaneous checkout losing the {@code @Version} race on the cart. */
+    public void failOnClearWithOptimisticLock() {
+        failOnClearWithOptimisticLock = true;
+    }
 
     public void add(Long userId, Long movieId) {
         carts.computeIfAbsent(userId, id -> new ArrayList<>()).add(movieId);
@@ -23,6 +32,9 @@ public class UserCartFake implements UserCart {
 
     @Override
     public void clear(Long userId) {
+        if (failOnClearWithOptimisticLock) {
+            throw new ObjectOptimisticLockingFailureException("Cart", userId);
+        }
         carts.remove(userId);
     }
 }

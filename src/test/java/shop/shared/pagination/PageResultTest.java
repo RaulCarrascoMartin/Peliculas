@@ -28,4 +28,11 @@ class PageResultTest {
         assertEquals(7, mapped.total());
         assertTrue(new PageResult<Integer>(List.of(), 0, PageQuery.of(0, 2)).isEmpty());
     }
+
+    @Test
+    void totalPagesRoundsUpAndIsZeroWithoutASize() {
+        assertEquals(4, new PageResult<>(List.of(1, 2), 7, PageQuery.of(0, 2)).totalPages());
+        assertEquals(1, new PageResult<>(List.of(1), 1, PageQuery.of(0, 10)).totalPages());
+        assertEquals(0, new PageResult<Integer>(List.of(), 0, PageQuery.of(0, 0)).totalPages());
+    }
 }

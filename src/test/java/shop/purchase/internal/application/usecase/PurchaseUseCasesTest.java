@@ -13,6 +13,7 @@ import shop.purchase.internal.domain.service.PurchaseServiceImpl;
 import shop.purchase.internal.domain.model.PurchaseStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -124,6 +125,18 @@ class PurchaseUseCasesTest {
 
         assertEquals(List.of(10L, 11L), carts.findMovieIds(1L));
         assertEquals(0, purchases.count());
+    }
+
+    /**
+     * The lost optimistic lock is not translated here: it propagates as it is so the transaction rolls back and
+     * {@code GlobalExceptionHandler} answers 409 (see GlobalExceptionHandlerTest and ConcurrentCheckoutIntegrationTest).
+     */
+    @Test
+    void optimisticLockOnClearPropagatesUntranslated() {
+        cartWithTwoMovies(1L);
+        carts.failOnClearWithOptimisticLock();
+
+        assertThrows(OptimisticLockingFailureException.class, () -> complete.execute(1L));
     }
 
     @Test
