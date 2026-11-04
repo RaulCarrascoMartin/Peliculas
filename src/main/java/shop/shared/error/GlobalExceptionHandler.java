@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
-import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -40,11 +40,12 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Lost optimistic lock (two requests on the same cart): 409 wherever the failure happens,
-     * including the flush or commit that occurs outside the service body. It exposes neither the entity nor the id.
+     * Lost optimistic lock (two requests on the same cart) or a lock the database could not grant because of a
+     * concurrent transaction: 409 wherever the failure happens, since retrying is the right answer. It exposes neither
+     * the SQL nor the id.
      */
-    @ExceptionHandler(OptimisticLockingFailureException.class)
-    public ResponseEntity<ApiError> optimisticLock(OptimisticLockingFailureException ex) {
+    @ExceptionHandler(ConcurrencyFailureException.class)
+    public ResponseEntity<ApiError> optimisticLock(ConcurrencyFailureException ex) {
         return response(HttpStatus.CONFLICT, "El recurso fue modificado por otra petición; inténtalo de nuevo", Map.of());
     }
 

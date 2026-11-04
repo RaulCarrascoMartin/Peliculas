@@ -2,12 +2,11 @@ package shop.catalog.internal.persistence.repository;
 
 import shop.catalog.internal.domain.model.Movie;
 import shop.catalog.internal.domain.repository.MovieRepository;
-import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Import;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,23 +15,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DataJpaTest
-@Import(MovieRepositoryImpl.class)
+@JdbcTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(JdbcMovieRepository.class)
 class MovieRepositoryTest {
 
     @Autowired
     private MovieRepository repository;
 
-    @Autowired
-    private EntityManager em;
 
-    private <T> T flushed(T saved) {
-        em.flush();
-        return saved;
-    }
 
-    @Autowired
-    private EntityManager entityManager;
 
     private Movie movie(String title) {
         var movie = new Movie();
@@ -45,15 +37,14 @@ class MovieRepositoryTest {
 
     @Test
     void savesMovieAndAssignsId() {
-        var saved = flushed(repository.save(movie("Alien")));
+        var saved = repository.save(movie("Alien"));
 
         assertNotNull(saved.getId());
     }
 
     @Test
     void retrievesAllData() {
-        var id = flushed(repository.save(movie("Alien"))).getId();
-        entityManager.clear();
+        var id = repository.save(movie("Alien")).getId();
 
         var retrieved = repository.findById(id).orElseThrow();
 
@@ -65,7 +56,7 @@ class MovieRepositoryTest {
 
     @Test
     void withoutRatingsAverageIsNull() {
-        var saved = flushed(repository.save(movie("Alien")));
+        var saved = repository.save(movie("Alien"));
 
         assertNull(saved.getAverageRating());
     }
@@ -74,20 +65,19 @@ class MovieRepositoryTest {
     void savesAverageRating() {
         var movie = movie("Alien");
         movie.setAverageRating(4.5);
-        var id = flushed(repository.save(movie)).getId();
-        entityManager.clear();
+        var id = repository.save(movie).getId();
 
         assertEquals(4.5, repository.findById(id).orElseThrow().getAverageRating());
     }
 
     @Test
     void titleIsRequired() {
-        assertThrows(DataIntegrityViolationException.class, () -> flushed(repository.save(movie(null))));
+        assertThrows(DataIntegrityViolationException.class, () -> repository.save(movie(null)));
     }
 
     @Test
     void deletesMovie() {
-        var id = flushed(repository.save(movie("Alien"))).getId();
+        var id = repository.save(movie("Alien")).getId();
 
         repository.deleteById(id);
 
@@ -99,7 +89,7 @@ class MovieRepositoryTest {
         movie.setYear(year);
         movie.setGenre(genre);
         movie.setDirector(director);
-        flushed(repository.save(movie));
+        repository.save(movie);
     }
 
     @Test
@@ -119,7 +109,7 @@ class MovieRepositoryTest {
     private Long withStock(String title, int stock) {
         var p = movie(title);
         p.setStock(stock);
-        return flushed(repository.save(p)).getId();
+        return repository.save(p).getId();
     }
 
     @Test
@@ -142,7 +132,7 @@ class MovieRepositoryTest {
 
     @Test
     void newMovieStartsWithZeroStock() {
-        Long id = flushed(repository.save(movie("No stock"))).getId();
+        Long id = repository.save(movie("No stock")).getId();
 
         assertEquals(0, repository.findById(id).orElseThrow().getStock());
     }

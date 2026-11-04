@@ -3,11 +3,11 @@ package shop.purchase.internal.persistence.repository;
 import shop.purchase.internal.domain.model.Purchase;
 import shop.purchase.internal.domain.repository.PurchaseRepository;
 import shop.purchase.internal.domain.model.PurchaseStatus;
-import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Import;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
@@ -18,20 +18,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DataJpaTest
-@Import(PurchaseRepositoryImpl.class)
+@JdbcTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(JdbcPurchaseRepository.class)
 class PurchaseRepositoryTest {
 
     @Autowired
     private PurchaseRepository repository;
 
-    @Autowired
-    private EntityManager em;
 
-    private <T> T flushed(T saved) {
-        em.flush();
-        return saved;
-    }
 
     private Purchase purchase(Long userId, LocalDateTime purchasedAt) {
         var purchase = new Purchase();
@@ -44,7 +39,7 @@ class PurchaseRepositoryTest {
 
     @Test
     void savesPurchaseWithStatusAndTotal() {
-        var saved = flushed(repository.save(purchase(1L, LocalDateTime.of(2026, 11, 2, 9, 0))));
+        var saved = repository.save(purchase(1L, LocalDateTime.of(2026, 11, 2, 9, 0)));
 
         var read = repository.findByIdAndUserId(saved.getId(), 1L).orElseThrow();
         assertEquals(PurchaseStatus.COMPRADA, read.getStatus());
@@ -54,10 +49,10 @@ class PurchaseRepositoryTest {
 
     @Test
     void listsUserPurchasesByDateDescending() {
-        var old = flushed(repository.save(purchase(1L, LocalDateTime.of(2026, 11, 1, 9, 0))));
-        var recent = flushed(repository.save(purchase(1L, LocalDateTime.of(2026, 11, 3, 9, 0))));
-        var intermediate = flushed(repository.save(purchase(1L, LocalDateTime.of(2026, 11, 2, 9, 0))));
-        flushed(repository.save(purchase(2L, LocalDateTime.of(2026, 11, 4, 9, 0))));
+        var old = repository.save(purchase(1L, LocalDateTime.of(2026, 11, 1, 9, 0)));
+        var recent = repository.save(purchase(1L, LocalDateTime.of(2026, 11, 3, 9, 0)));
+        var intermediate = repository.save(purchase(1L, LocalDateTime.of(2026, 11, 2, 9, 0)));
+        repository.save(purchase(2L, LocalDateTime.of(2026, 11, 4, 9, 0)));
 
         List<Long> ids = repository.findByUserIdOrderByPurchasedAtDesc(1L).stream().map(Purchase::getId).toList();
 
@@ -66,7 +61,7 @@ class PurchaseRepositoryTest {
 
     @Test
     void othersPurchaseIsNotFoundByUser() {
-        var others = flushed(repository.save(purchase(2L, LocalDateTime.of(2026, 11, 2, 9, 0))));
+        var others = repository.save(purchase(2L, LocalDateTime.of(2026, 11, 2, 9, 0)));
 
         assertTrue(repository.findByIdAndUserId(others.getId(), 1L).isEmpty());
         assertEquals(others.getId(), repository.findByIdAndUserId(others.getId(), 2L).orElseThrow().getId());
@@ -75,6 +70,6 @@ class PurchaseRepositoryTest {
     @Test
     void requiresDateTotalAndStatus() {
         var withoutDate = purchase(1L, null);
-        assertThrows(DataIntegrityViolationException.class, () -> flushed(repository.save(withoutDate)));
+        assertThrows(DataIntegrityViolationException.class, () -> repository.save(withoutDate));
     }
 }

@@ -12,9 +12,9 @@ public class Cart {
     private Long version;
 
     /**
-     * Last time the cart was cleared. Changing it makes the entity dirty so Hibernate emits
-     * {@code update ... where version=?}: without a real change, clearing (which only deletes lines) would never touch
-     * the version and two simultaneous checkouts would not collide.
+     * Last time the cart was cleared. Changing it makes clearing a real update of the cart, so the version check of
+     * the repository runs: without it, clearing (which only deletes lines) would never touch the version and two
+     * simultaneous checkouts would not collide.
      */
     private LocalDateTime updatedAt;
 

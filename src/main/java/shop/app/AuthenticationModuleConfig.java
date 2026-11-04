@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import shop.authentication.internal.application.usecase.CreateAdminIfMissing;
 import shop.authentication.internal.application.usecase.Login;
@@ -15,16 +16,15 @@ import shop.authentication.internal.domain.contract.TokenIssuer;
 import shop.authentication.internal.domain.repository.UserRepository;
 import shop.authentication.internal.infrastructure.BcryptPasswordHasher;
 import shop.authentication.internal.infrastructure.JwtTokenIssuer;
-import shop.authentication.internal.persistence.jpa.UserJpaRepository;
-import shop.authentication.internal.persistence.repository.UserRepositoryImpl;
+import shop.authentication.internal.persistence.repository.JdbcUserRepository;
 import shop.shared.security.JwtTokens;
 
 @Configuration
 class AuthenticationModuleConfig {
 
     @Bean
-    UserRepository userRepository(UserJpaRepository dao) {
-        return new UserRepositoryImpl(dao);
+    UserRepository userRepository(JdbcClient jdbc) {
+        return new JdbcUserRepository(jdbc);
     }
 
     @Bean

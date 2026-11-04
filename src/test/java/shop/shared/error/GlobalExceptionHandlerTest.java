@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -84,7 +83,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void optimisticLockReturns409WithStandardBodyWhereverItComesFrom() {
-        var response = handler.optimisticLock(new ObjectOptimisticLockingFailureException("Cart", 7L));
+        var response = handler.optimisticLock(new OptimisticLockingFailureException("Cart 7 was updated by another transaction"));
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertEquals(409, response.getBody().status());

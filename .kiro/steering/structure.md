@@ -31,10 +31,7 @@ src/main/java/shop/
 │       │   └── exception/        #   excepciones de negocio
 │       ├── infrastructure/       # piezas técnicas: hash de contraseñas, emisión de tokens
 │       └── persistence/
-│           ├── entity/           #   XxxEntity (JPA)
-│           ├── jpa/              #   XxxJpaRepository (Spring Data)
-│           ├── repository/       #   XxxRepositoryImpl (implementa el dominio)
-│           ├── mapper/           #   XxxPersistenceMapper
+│           ├── repository/       #   JdbcXxxRepository (JdbcClient; implementa el dominio)
 │           └── adapter/          #   adaptadores hacia la facade de otros módulos
 └── shared/                       # utilidades comunes (módulo abierto); no depende de ningún módulo
     ├── error/                    # excepciones de negocio, ApiError, GlobalExceptionHandler
@@ -46,7 +43,7 @@ src/test/java/shop/               # mismas rutas que main, más pruebas de arqui
 
 ## Reglas de la estructura modular
 - Las reglas de negocio viven en los servicios de `domain`; los casos de uso de `application` solo coordinan (transacción, mapeo a `*View`) y reciben el `userId` como parámetro (el controlador lo obtiene de `CurrentUser`).
-- `domain` y `application` no dependen de Spring, JPA, validación, Hibernate ni MapStruct. Las clases internas son POJOs con constructor; solo `app` (y `api.http`, `persistence`, `infrastructure`) usan el framework. Las transacciones se declaran con `jakarta.transaction.Transactional`.
+- `domain` y `application` no dependen de Spring, validación ni MapStruct. Las clases internas son POJOs con constructor; solo `app` (y `api.http`, `persistence`, `infrastructure`) usan el framework. Las transacciones se declaran con `jakarta.transaction.Transactional`.
 - Los beans de `application`, `persistence` e `infrastructure` se crean en `shop.app` con `@Bean`; los controladores (`api.http`) se detectan por `@RestController`.
 - El módulo consumidor define su propio contrato en `domain` (p. ej. `MovieCatalog`) y un adaptador en `persistence` lo traduce a la `facade` del proveedor. Los casos de uso nunca ven tipos de otro módulo.
 - `api.http` solo ve `application` (y enums de dominio usados como parámetro); nunca modelos ni entidades.
@@ -54,7 +51,8 @@ src/test/java/shop/               # mismas rutas que main, más pruebas de arqui
 - `ArchitectureTest` y `ModulithTest` verifican estas reglas en cada build.
 
 ## Módulo orders (P6)
-- `orders` usa persistencia JDBC (`JdbcClient`) en lugar de JPA: `internal/domain` tiene `Order`, `OrderLine` y la interfaz `OrderRepository`; `internal/persistence` tiene `JdbcOrderRepository`. Sus tablas (`orders`, `order_lines`) están en `src/main/resources/init.sql`.
+- Todos los módulos usan persistencia JDBC (`JdbcClient`), sin JPA. Las tablas de todos los módulos están en `src/main/resources/init.sql`, que se ejecuta en cada arranque (`CREATE TABLE IF NOT EXISTS`). Ejemplo: `orders` tiene `Order`, `OrderLine` y la interfaz `OrderRepository` en `internal/domain`, y `JdbcOrderRepository` en `internal/persistence`.
+- El bloqueo optimista del carrito (`carritos.version`) se hace a mano en `JdbcCartRepository` y depende de aislamiento `REPEATABLE READ` (`spring.datasource.hikari.transaction-isolation`). Los fallos de concurrencia se traducen a 409 en `GlobalExceptionHandler`.
 - Solo consume `shop.catalog.api.CatalogApi` (`reserve` y `release`); traduce sus excepciones a 404/409 en el caso de uso.
 - Contrato: `static/contratos/orders-api.yml` (v0.2.0), del que se genera `OrdersRestApi` y los DTO.
 

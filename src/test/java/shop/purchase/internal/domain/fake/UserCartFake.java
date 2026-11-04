@@ -2,7 +2,7 @@ package shop.purchase.internal.domain.fake;
 
 import shop.purchase.internal.domain.contract.UserCart;
 
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +33,7 @@ public class UserCartFake implements UserCart {
     @Override
     public void clear(Long userId) {
         if (failOnClearWithOptimisticLock) {
-            throw new ObjectOptimisticLockingFailureException("Cart", userId);
+            throw new OptimisticLockingFailureException("Cart of user " + userId + " was updated by another transaction");
         }
         carts.remove(userId);
     }

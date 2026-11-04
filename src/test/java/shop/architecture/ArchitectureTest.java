@@ -19,8 +19,7 @@ class ArchitectureTest {
     private static final String BASE = "shop";
     private static final String[] MODULES = {"catalog", "rating", "authentication", "cart", "purchase", "orders"};
     private static final String[] FRAMEWORKS = {
-            "org.springframework..", "jakarta.persistence..", "jakarta.validation..", "org.hibernate..",
-            "org.mapstruct.."};
+            "org.springframework..", "jakarta.validation..", "org.mapstruct.."};
 
     private static JavaClasses classes;
 
@@ -109,14 +108,6 @@ class ArchitectureTest {
                 .and().areNotInterfaces()
                 .and().areNotAnnotations()
                 .should().beAssignableTo(Record.class).orShould().beAssignableTo(RuntimeException.class)
-                .allowEmptyShould(true)
-                .check(classes);
-    }
-
-    @Test
-    void entitiesStayInPersistence() {
-        classes().that().areAnnotatedWith(jakarta.persistence.Entity.class)
-                .should().resideInAPackage(BASE + "..internal.persistence..")
                 .allowEmptyShould(true)
                 .check(classes);
     }

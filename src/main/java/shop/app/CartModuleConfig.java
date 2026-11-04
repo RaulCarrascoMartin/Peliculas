@@ -2,6 +2,7 @@ package shop.app;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import shop.cart.api.facade.CartFacade;
 import shop.cart.internal.application.usecase.AddToCart;
 import shop.cart.internal.application.facade.CartFacadeImpl;
@@ -13,10 +14,8 @@ import shop.cart.internal.domain.repository.CartRepository;
 import shop.cart.internal.domain.service.CartService;
 import shop.cart.internal.domain.service.CartServiceImpl;
 import shop.cart.internal.domain.contract.MovieCatalog;
-import shop.cart.internal.persistence.jpa.CartJpaRepository;
-import shop.cart.internal.persistence.jpa.CartLineJpaRepository;
-import shop.cart.internal.persistence.repository.CartLineRepositoryImpl;
-import shop.cart.internal.persistence.repository.CartRepositoryImpl;
+import shop.cart.internal.persistence.repository.JdbcCartLineRepository;
+import shop.cart.internal.persistence.repository.JdbcCartRepository;
 import shop.cart.internal.persistence.adapter.MovieCatalogAdapter;
 import shop.catalog.api.facade.CatalogFacade;
 
@@ -24,13 +23,13 @@ import shop.catalog.api.facade.CatalogFacade;
 class CartModuleConfig {
 
     @Bean
-    CartRepository cartRepository(CartJpaRepository dao) {
-        return new CartRepositoryImpl(dao);
+    CartRepository cartRepository(JdbcClient jdbc) {
+        return new JdbcCartRepository(jdbc);
     }
 
     @Bean
-    CartLineRepository cartLineRepository(CartLineJpaRepository dao) {
-        return new CartLineRepositoryImpl(dao);
+    CartLineRepository cartLineRepository(JdbcClient jdbc) {
+        return new JdbcCartLineRepository(jdbc);
     }
 
     @Bean

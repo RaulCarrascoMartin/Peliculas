@@ -2,6 +2,7 @@ package shop.app;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import shop.catalog.api.facade.CatalogFacade;
 import shop.catalog.internal.application.facade.CatalogFacadeImpl;
 import shop.catalog.internal.application.usecase.CreateMovie;
@@ -16,15 +17,14 @@ import shop.catalog.internal.domain.service.MovieService;
 import shop.catalog.internal.domain.service.MovieServiceImpl;
 import shop.catalog.internal.domain.service.StockService;
 import shop.catalog.internal.domain.service.StockServiceImpl;
-import shop.catalog.internal.persistence.jpa.MovieJpaRepository;
-import shop.catalog.internal.persistence.repository.MovieRepositoryImpl;
+import shop.catalog.internal.persistence.repository.JdbcMovieRepository;
 
 @Configuration
 class CatalogModuleConfig {
 
     @Bean
-    MovieRepository movieRepository(MovieJpaRepository dao) {
-        return new MovieRepositoryImpl(dao);
+    MovieRepository movieRepository(JdbcClient jdbc) {
+        return new JdbcMovieRepository(jdbc);
     }
 
     @Bean

@@ -2,6 +2,7 @@ package shop.app;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import shop.catalog.api.facade.CatalogFacade;
 import shop.rating.internal.application.usecase.ListMarkedMovies;
 import shop.rating.internal.application.usecase.MarkMovie;
@@ -15,22 +16,20 @@ import shop.rating.internal.domain.repository.RatingRepository;
 import shop.rating.internal.domain.service.RatingService;
 import shop.rating.internal.domain.service.RatingServiceImpl;
 import shop.rating.internal.persistence.adapter.MovieCatalogAdapter;
-import shop.rating.internal.persistence.jpa.MovieMarkJpaRepository;
-import shop.rating.internal.persistence.repository.MovieMarkRepositoryImpl;
-import shop.rating.internal.persistence.jpa.RatingJpaRepository;
-import shop.rating.internal.persistence.repository.RatingRepositoryImpl;
+import shop.rating.internal.persistence.repository.JdbcMovieMarkRepository;
+import shop.rating.internal.persistence.repository.JdbcRatingRepository;
 
 @Configuration
 class RatingModuleConfig {
 
     @Bean
-    RatingRepository ratingRepository(RatingJpaRepository dao) {
-        return new RatingRepositoryImpl(dao);
+    RatingRepository ratingRepository(JdbcClient jdbc) {
+        return new JdbcRatingRepository(jdbc);
     }
 
     @Bean
-    MovieMarkRepository movieMarkRepository(MovieMarkJpaRepository dao) {
-        return new MovieMarkRepositoryImpl(dao);
+    MovieMarkRepository movieMarkRepository(JdbcClient jdbc) {
+        return new JdbcMovieMarkRepository(jdbc);
     }
 
     @Bean

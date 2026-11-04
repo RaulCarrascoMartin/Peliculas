@@ -2,13 +2,11 @@ package shop.purchase.api.http.controller;
 
 import com.jayway.jsonpath.JsonPath;
 import shop.shared.security.JwtTokens;
-import shop.purchase.internal.persistence.entity.PurchaseEntity;
-import shop.purchase.internal.persistence.jpa.PurchaseJpaRepository;
-import shop.purchase.internal.persistence.jpa.PurchaseLineJpaRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -49,10 +47,7 @@ class ConcurrentCheckoutIntegrationTest {
     private JwtTokens tokens;
 
     @Autowired
-    private PurchaseJpaRepository purchases;
-
-    @Autowired
-    private PurchaseLineJpaRepository lines;
+    private JdbcClient jdbc;
 
     private final List<Long> usedUsers = new ArrayList<>();
     private final List<Long> createdMovies = new ArrayList<>();
@@ -60,10 +55,9 @@ class ConcurrentCheckoutIntegrationTest {
     @AfterEach
     void clean() throws Exception {
         for (long userId : usedUsers) {
-            for (PurchaseEntity purchase : purchases.findByUserIdOrderByPurchasedAtDesc(userId)) {
-                lines.deleteAll(lines.findByPurchaseIdOrderById(purchase.getId()));
-                purchases.delete(purchase);
-            }
+            jdbc.sql("delete from lineas_compra where compra_id in (select id from compras where usuario_id = ?)")
+                    .param(userId).update();
+            jdbc.sql("delete from compras where usuario_id = ?").param(userId).update();
             mvc.perform(delete("/api/carrito").header("Authorization", bearer(userId)));
         }
         for (long id : createdMovies) {
@@ -116,7 +110,7 @@ class ConcurrentCheckoutIntegrationTest {
                 List<Integer> statuses = List.of(a.get(), b.get()).stream().sorted().toList();
 
                 assertEquals(List.of(201, 409), statuses, "round " + round + ": one purchase and one conflict");
-                assertEquals(1, purchases.findByUserIdOrderByPurchasedAtDesc(user).size(),
+                assertEquals(1L, jdbc.sql("select count(*) from compras where usuario_id = ?").param(user).query(Long.class).single(),
                         "round " + round + ": exactly one purchase");
                 String cart = mvc.perform(get("/api/carrito").header("Authorization", bearer(user)))
                         .andReturn().getResponse().getContentAsString();
