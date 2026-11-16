@@ -4,13 +4,13 @@ info:
   description: Historial y finalizacion de compras del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
   version: 1.0.0
 tags:
-  - name: ComprasRest
+  - name: PurchasesHttp
     description: Compras del usuario actual
 paths:
   /api/compras:
     post:
-      tags: [ComprasRest]
-      operationId: finalizarCompra
+      tags: [PurchasesHttp]
+      operationId: completePurchase
       summary: Finaliza la compra con el contenido del carrito (checkout atomico)
       responses:
         '201':
@@ -18,7 +18,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Compra'
+                $ref: '#/components/schemas/Purchase'
               example:
                 id: 10
                 fecha: '2026-10-27T10:15:30'
@@ -33,8 +33,8 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictoCompra'
     get:
-      tags: [ComprasRest]
-      operationId: listarCompras
+      tags: [PurchasesHttp]
+      operationId: listPurchases
       summary: Historial de compras del usuario, ordenado por fecha descendente
       responses:
         '200':
@@ -44,13 +44,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Compra'
+                  $ref: '#/components/schemas/Purchase'
         '401':
           $ref: '#/components/responses/NoAutenticado'
   /api/compras/{compraId}:
     get:
-      tags: [ComprasRest]
-      operationId: detalleCompra
+      tags: [PurchasesHttp]
+      operationId: purchaseDetail
       summary: Detalle de una compra propia (una ajena o inexistente responde 404, nunca 403)
       parameters:
         - name: compraId
@@ -65,7 +65,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Compra'
+                $ref: '#/components/schemas/Purchase'
         '401':
           $ref: '#/components/responses/NoAutenticado'
         '404':
@@ -84,7 +84,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorRespuesta'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             estado: 401
             mensaje: No autenticado
@@ -94,7 +94,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorRespuesta'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             estado: 409
             mensaje: El carrito esta vacio
@@ -104,13 +104,13 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorRespuesta'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             estado: 404
             mensaje: Recurso no encontrado
             errores: {}
   schemas:
-    Compra:
+    Purchase:
       type: object
       description: Compra completada; titulo y precio de sus lineas son snapshot, no cambian aunque la pelicula se edite o elimine
       required: [id, fecha, estado, lineas, total]
@@ -131,13 +131,13 @@ components:
         lineas:
           type: array
           items:
-            $ref: '#/components/schemas/LineaCompra'
+            $ref: '#/components/schemas/PurchaseLine'
         total:
           type: number
           description: Suma de los precios unitarios; se almacena con la compra
           multipleOf: 0.01
           example: 12.99
-    LineaCompra:
+    PurchaseLine:
       type: object
       required: [peliculaId, titulo, precioUnitario]
       properties:
@@ -154,7 +154,7 @@ components:
           description: Precio de la pelicula en el momento de la compra (snapshot)
           multipleOf: 0.01
           example: 12.99
-    ErrorRespuesta:
+    ErrorResponse:
       type: object
       description: Cuerpo uniforme de error, con el mismo formato que produce el GlobalExceptionHandler
       required: [estado, mensaje, errores]

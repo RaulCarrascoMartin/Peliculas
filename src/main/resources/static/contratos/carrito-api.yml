@@ -4,13 +4,13 @@ info:
   description: Endpoints del carrito del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
   version: 1.0.0
 tags:
-  - name: CarritoRest
+  - name: CartHttp
     description: Carrito del usuario actual
 paths:
   /api/carrito:
     get:
-      tags: [CarritoRest]
-      operationId: verCarrito
+      tags: [CartHttp]
+      operationId: viewCart
       summary: Carrito actual (vacio con total cero si aun no existe)
       responses:
         '200':
@@ -18,7 +18,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Carrito'
+                $ref: '#/components/schemas/Cart'
               example:
                 lineas:
                   - peliculaId: 1
@@ -28,8 +28,8 @@ paths:
         '401':
           $ref: '#/components/responses/NoAutenticado'
     delete:
-      tags: [CarritoRest]
-      operationId: vaciarCarrito
+      tags: [CartHttp]
+      operationId: clearCart
       summary: Vacia el carrito (idempotente)
       responses:
         '204':
@@ -38,15 +38,15 @@ paths:
           $ref: '#/components/responses/NoAutenticado'
   /api/carrito/lineas:
     post:
-      tags: [CarritoRest]
-      operationId: anadirLinea
+      tags: [CartHttp]
+      operationId: addLine
       summary: Anade una pelicula al carrito (crea el carrito si es la primera)
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AnadirLinea'
+              $ref: '#/components/schemas/AddLine'
             example:
               peliculaId: 1
       responses:
@@ -55,7 +55,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LineaCarrito'
+                $ref: '#/components/schemas/CartLine'
               example:
                 peliculaId: 1
                 titulo: Alien
@@ -70,8 +70,8 @@ paths:
           $ref: '#/components/responses/ConflictoLinea'
   /api/carrito/lineas/{peliculaId}:
     delete:
-      tags: [CarritoRest]
-      operationId: quitarLinea
+      tags: [CartHttp]
+      operationId: removeLine
       summary: Quita una pelicula del carrito
       parameters:
         - name: peliculaId
@@ -102,7 +102,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorRespuesta'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             estado: 401
             mensaje: No autenticado
@@ -112,7 +112,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorRespuesta'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             estado: 400
             mensaje: Peticion invalida
@@ -123,7 +123,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorRespuesta'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             estado: 404
             mensaje: Recurso no encontrado
@@ -133,7 +133,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorRespuesta'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             estado: 404
             mensaje: Recurso no encontrado
@@ -143,13 +143,13 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorRespuesta'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             estado: 409
             mensaje: La pelicula ya esta en el carrito
             errores: {}
   schemas:
-    Carrito:
+    Cart:
       type: object
       description: Carrito del usuario; el precio de cada linea es el precio vivo de la pelicula
       required: [lineas, total]
@@ -157,13 +157,13 @@ components:
         lineas:
           type: array
           items:
-            $ref: '#/components/schemas/LineaCarrito'
+            $ref: '#/components/schemas/CartLine'
         total:
           type: number
           description: Suma de los precios actuales de las lineas; cero si el carrito esta vacio
           multipleOf: 0.01
           example: 12.99
-    LineaCarrito:
+    CartLine:
       type: object
       required: [peliculaId, titulo, precio]
       properties:
@@ -179,7 +179,7 @@ components:
           description: Precio vivo de la pelicula al consultar
           multipleOf: 0.01
           example: 12.99
-    AnadirLinea:
+    AddLine:
       type: object
       required: [peliculaId]
       properties:
@@ -187,7 +187,7 @@ components:
           type: integer
           format: int64
           example: 1
-    ErrorRespuesta:
+    ErrorResponse:
       type: object
       description: Cuerpo uniforme de error, con el mismo formato que produce el GlobalExceptionHandler
       required: [estado, mensaje, errores]
