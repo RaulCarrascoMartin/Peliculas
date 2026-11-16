@@ -1,26 +1,21 @@
 package shop.cart.api.http.mapper;
 
-import shop.cart.api.http.dto.Cart;
-import shop.cart.api.http.dto.CartLine;
-import shop.cart.internal.application.dto.CartLineView;
-import shop.cart.internal.application.dto.CartView;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import shop.cart.api.http.dto.CartLineResponse;
+import shop.cart.api.http.dto.CartResponse;
+import shop.cart.internal.domain.dto.CartContentsDto;
+import shop.cart.internal.domain.dto.PricedLineDto;
 
-import java.util.List;
+/** DTO of the cart domain → DTO of the HTTP contract (whose property names are the Spanish wire names). */
+@Mapper(componentModel = "spring")
+public interface CartWebMapper {
 
-/** Converts the use case views into the DTO of the HTTP contract. */
-public final class CartWebMapper {
+    @Mapping(target = "lineas", source = "lines")
+    CartResponse toResponse(CartContentsDto contents);
 
-    private CartWebMapper() {
-    }
-
-    public static Cart toDto(CartView view) {
-        List<CartLine> lines = view.lines().stream()
-                .map(CartWebMapper::toDto)
-                .toList();
-        return new Cart(lines, view.total());
-    }
-
-    public static CartLine toDto(CartLineView line) {
-        return new CartLine(line.movieId(), line.title(), line.price());
-    }
+    @Mapping(target = "peliculaId", source = "movieId")
+    @Mapping(target = "titulo", source = "title")
+    @Mapping(target = "precio", source = "price")
+    CartLineResponse toResponse(PricedLineDto line);
 }

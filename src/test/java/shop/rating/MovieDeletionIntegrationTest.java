@@ -111,7 +111,7 @@ class MovieDeletionIntegrationTest {
 
         assertEquals(1, ratings.findByMovieId(preserved).size());
         var favorites = marks.findByUserIdAndType(302L, shop.rating.internal.domain.model.MarkType.FAVORITA);
-        assertTrue(favorites.stream().anyMatch(m -> m.getMovieId().equals(preserved)));
+        assertTrue(favorites.stream().anyMatch(m -> m.movieId().equals(preserved)));
         mvc.perform(get("/api/usuarios/me/favoritas").header("Authorization", bearer(302, "USUARIO")))
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(preserved));

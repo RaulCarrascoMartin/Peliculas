@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,7 +35,7 @@ class MovieControllerIntegrationTest {
     private JwtTokens tokens;
 
     @Autowired
-    private shop.catalog.internal.domain.repository.MovieRepository repo;
+    private org.springframework.jdbc.core.simple.JdbcClient jdbc;
 
     private String admin() {
         return "Bearer " + tokens.issueToken(1L, "ADMIN");
@@ -74,16 +76,16 @@ class MovieControllerIntegrationTest {
         send(post("/api/peliculas"), admin(),
                 "{\"titulo\":\"\",\"anio\":5,\"genero\":\"Drama\",\"director\":\"X\"}")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errores.titulo").isNotEmpty())
-                .andExpect(jsonPath("$.errores.anio").isNotEmpty());
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("titulo: "))))
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("anio: "))));
     }
 
     @Test
     void withoutGenreOrDirectorReturns400() throws Exception {
         send(post("/api/peliculas"), admin(), "{\"titulo\":\"Alien\",\"anio\":1979}")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errores.genero").isNotEmpty())
-                .andExpect(jsonPath("$.errores.director").isNotEmpty());
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("genero: "))))
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("director: "))));
     }
 
     @Test
@@ -101,14 +103,14 @@ class MovieControllerIntegrationTest {
     void detailOfUnknownMovieReturns404() throws Exception {
         mvc.perform(get("/api/peliculas/987654"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.estado").value(404));
+                .andExpect(jsonPath("$.status").value(404));
     }
 
     @Test
     void nonNumericIdReturns400() throws Exception {
         mvc.perform(get("/api/peliculas/abc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.estado").value(400));
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
@@ -178,7 +180,7 @@ class MovieControllerIntegrationTest {
     void withoutYearReturns400() throws Exception {
         send(post("/api/peliculas"), admin(), "{\"titulo\":\"Alien\",\"genero\":\"Drama\",\"director\":\"X\"}")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errores.anio").isNotEmpty());
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("anio: "))));
     }
 
     @Test
@@ -273,7 +275,7 @@ class MovieControllerIntegrationTest {
     void createOrUpdateWithoutPriceReturns400() throws Exception {
         send(post("/api/peliculas"), admin(), "{\"titulo\":\"Alien\",\"anio\":1979,\"genero\":\"Drama\",\"director\":\"X\"}")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errores.precio").isNotEmpty());
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("precio: "))));
     }
 
     @Test
@@ -308,15 +310,72 @@ class MovieControllerIntegrationTest {
     @Test
     void preexistingMovieWithoutPriceIsNotPurchasableInApi() throws Exception {
         // Simulates a movie created before this change: it is saved without a price through another path
-        var preexisting = new shop.catalog.internal.domain.model.Movie();
-        preexisting.setTitle("Silent");
-        preexisting.setYear(1950);
-        preexisting.setGenre("Drama");
-        preexisting.setDirector("Somebody");
-        var saved = repo.save(preexisting);
+        var keys = new org.springframework.jdbc.support.GeneratedKeyHolder();
+        jdbc.sql("insert into peliculas (titulo, anio, genero, director) values (:title, :year, :genre, :director)")
+                .param("title", "Silent")
+                .param("year", 1950)
+                .param("genre", "Drama")
+                .param("director", "Somebody")
+                .update(keys, "id");
 
-        mvc.perform(get("/api/peliculas/" + saved.getId()))
+        mvc.perform(get("/api/peliculas/" + keys.getKey().longValue()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.titulo").value("Silent"))
                 .andExpect(jsonPath("$.precio").isEmpty());
+    }
+
+    // ---------- pagination, sort and stock ----------
+
+    @Test
+    void invalidPaginationReturns400WithTheParameter() throws Exception {
+        mvc.perform(get("/api/peliculas").param("page", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("page: "))));
+        mvc.perform(get("/api/peliculas").param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("size: "))));
+        mvc.perform(get("/api/peliculas").param("size", "2001"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("size: "))));
+        mvc.perform(get("/api/peliculas").param("size", "2000")).andExpect(status().isOk());
+    }
+
+    @Test
+    void sortsByTheRequestedPropertyAndRejectsUnknownOnesWith400() throws Exception {
+        createAsAdmin(json("Sorted B", 1991, "GeneroSort", "DirectorSort"));
+        createAsAdmin(json("Sorted A", 1992, "GeneroSort", "DirectorSort"));
+
+        mvc.perform(get("/api/peliculas").param("genero", "GeneroSort").param("sort", "title"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].titulo").value("Sorted A"))
+                .andExpect(jsonPath("$.content[1].titulo").value("Sorted B"));
+        mvc.perform(get("/api/peliculas").param("genero", "GeneroSort")
+                        .param("sort", "title,desc").param("sort", "id"))
+                .andExpect(jsonPath("$.content[0].titulo").value("Sorted B"));
+        mvc.perform(get("/api/peliculas").param("genero", "GeneroSort")
+                        .param("sort", "year,desc").param("sort", "id"))
+                .andExpect(jsonPath("$.content[0].titulo").value("Sorted A"));
+
+        mvc.perform(get("/api/peliculas").param("sort", "titulo"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value("Propiedad de ordenación no válida: titulo"));
+    }
+
+    @Test
+    void stockDefaultsToZeroAndUpdateWithoutStockKeepsIt() throws Exception {
+        long id = createAsAdmin(ALIEN);
+        mvc.perform(get("/api/peliculas/" + id)).andExpect(jsonPath("$.stock").value(0));
+
+        send(put("/api/peliculas/" + id), admin(),
+                "{\"titulo\":\"Alien\",\"anio\":1979,\"genero\":\"Drama\",\"director\":\"X\",\"precio\":12.99,\"stock\":7}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stock").value(7));
+        send(put("/api/peliculas/" + id), admin(), ALIENS)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.titulo").value("Aliens"))
+                .andExpect(jsonPath("$.stock").value(7));
     }
 
     private static String withPrice(String price) {

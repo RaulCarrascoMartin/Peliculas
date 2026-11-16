@@ -20,28 +20,53 @@ def inject(path,anchor,text):
     open(S+path,'w').write(s.replace(anchor,anchor+'\n    '+text,1))
 def newfile(path,content):
     os.makedirs(os.path.dirname(S+path),exist_ok=True); open(S+path,'w').write(content)
+SVC='cart/internal/domain/service/CartServiceImpl.java'
+SVC_AT='public class CartServiceImpl implements CartService {'
+REPO='cart/internal/persistence/repository/CartRepositoryImpl.java'
+REPO_AT='public class CartRepositoryImpl implements CartRepository {'
+CTRL='cart/api/http/controller/CartController.java'
+CTRL_AT='public class CartController implements CartHttpApi {'
 MUT=[
- ('application usa Spring','applicationDoesNotUseSpringNorPersistenceFrameworks',
-   lambda: inject('cart/internal/application/usecase/AddToCart.java','public class AddToCart {','private org.springframework.stereotype.Service leak;')),
  ('domain depende de persistence','domainDependsOnNoOtherLayer',
-   lambda: inject('cart/internal/domain/service/CartServiceImpl.java','public class CartServiceImpl implements CartService {','private shop.cart.internal.persistence.repository.JdbcCartRepository leak;')),
- ('application depende de persistence','applicationDoesNotDependOnPersistenceInfrastructureNorHttp',
-   lambda: inject('cart/internal/application/usecase/AddToCart.java','public class AddToCart {','private shop.cart.internal.persistence.repository.JdbcCartRepository leak;')),
- ('persistence depende de application','persistenceDoesNotDependOnApplicationNorHttp',
-   lambda: inject('cart/internal/persistence/repository/JdbcCartRepository.java','public class JdbcCartRepository implements CartRepository {','private shop.cart.internal.application.usecase.AddToCart leak;')),
- ('*View de application que no es record','useCaseDtosAreRecords',
-   lambda: newfile('cart/internal/application/dto/BadView.java','package shop.cart.internal.application.dto;\n\npublic class BadView {\n}\n')),
- ('clase de facade que no es record ni excepcion','useCaseDtosAreRecords',
+   lambda: inject(SVC,SVC_AT,'private shop.cart.internal.persistence.repository.CartRepositoryImpl leak;')),
+ ('domain conoce HTTP','domainKnowsNeitherHttpNorSqlNorFormatValidation',
+   lambda: inject(SVC,SVC_AT,'private org.springframework.http.HttpStatus leak;')),
+ ('controller se salta el dominio y usa persistence','controllerDependsOnlyOnTheDomainNeverSkippingLayers',
+   lambda: inject(CTRL,CTRL_AT,'private shop.cart.internal.persistence.repository.CartRepositoryImpl leak;')),
+ ('controller usa la interfaz del repositorio','controllerDependsOnlyOnTheDomainNeverSkippingLayers',
+   lambda: inject(CTRL,CTRL_AT,'private shop.cart.internal.domain.repository.CartRepository leak;')),
+ ('persistence depende del controller','persistenceDependsOnTheDomainAndNeverOnTheController',
+   lambda: inject(REPO,REPO_AT,'private shop.cart.api.http.controller.CartController leak;')),
+ ('JDBC fuera de persistence','jdbcIsUsedOnlyInPersistence',
+   lambda: inject(SVC,SVC_AT,'private org.springframework.jdbc.core.simple.JdbcClient leak;')),
+ ('el modelo sale del servicio','theModelNeverLeavesTheService',
+   lambda: inject(CTRL,CTRL_AT,'private shop.cart.internal.domain.model.Cart leak;')),
+ ('clase en application que no es la facade','applicationHoldsOnlyTheFacadeImplementation',
+   lambda: newfile('cart/internal/application/usecase/AddToCart.java','package shop.cart.internal.application.usecase;\n\npublic class AddToCart {\n}\n')),
+ ('servicio fuera de domain.service','servicesLiveInDomainService',
+   lambda: newfile('cart/api/http/controller/RogueService.java','package shop.cart.api.http.controller;\n\npublic interface RogueService {\n}\n')),
+ ('implementacion de repositorio fuera de persistence','repositoriesAreDeclaredInTheDomainAndImplementedInPersistence',
+   lambda: newfile('cart/internal/domain/repository/RogueRepositoryImpl.java','package shop.cart.internal.domain.repository;\n\npublic class RogueRepositoryImpl {\n}\n')),
+ ('mapper fuera de un paquete mapper','mappersLiveInMapperPackages',
+   lambda: newfile('cart/internal/domain/service/RogueMapper.java','package shop.cart.internal.domain.service;\n\npublic interface RogueMapper {\n}\n')),
+ ('DTO que no es record','dtosLiveInDtoPackagesAndAreRecords',
+   lambda: newfile('cart/internal/domain/dto/BadDto.java','package shop.cart.internal.domain.dto;\n\npublic class BadDto {\n}\n')),
+ ('clase de facade dto que no es record','dtosLiveInDtoPackagesAndAreRecords',
    lambda: newfile('catalog/api/facade/dto/BadDto.java','package shop.catalog.api.facade.dto;\n\npublic class BadDto {\n}\n')),
- ('clase sin @Configuration en app','appHoldsOnlyConfiguration',
-   lambda: newfile('app/Rogue.java','package shop.app;\n\npublic class Rogue {\n}\n')),
+ ('excepcion fuera de un paquete exception','exceptionsLiveInExceptionPackagesOrInTheSharedErrors',
+   lambda: newfile('cart/internal/domain/service/RogueException.java','package shop.cart.internal.domain.service;\n\npublic class RogueException extends RuntimeException {\n}\n')),
+ ('controller fuera de api.http.controller','controllersLiveInHttpController',
+   lambda: newfile('cart/internal/domain/service/RogueController.java','package shop.cart.internal.domain.service;\n\npublic class RogueController {\n}\n')),
+ ('inyeccion en campo','dependenciesAreInjectedByConstructor',
+   lambda: inject(SVC,SVC_AT,'@org.springframework.beans.factory.annotation.Autowired private java.time.Clock leak;')),
+ ('un modulo usa el internal de otro','modulesAreAccessedOnlyThroughTheirFacade',
+   lambda: inject(SVC,SVC_AT,'private shop.catalog.internal.domain.service.MovieService leak;')),
+ ('la facade depende de su internal','facadeDoesNotDependOnItsInternals',
+   lambda: newfile('catalog/api/facade/dto/LeakDto.java','package shop.catalog.api.facade.dto;\n\npublic record LeakDto(shop.catalog.internal.domain.service.MovieService leak) {\n}\n')),
  ('ciclo catalog -> cart','noCyclesBetweenModules',
    lambda: inject('catalog/internal/domain/service/MovieServiceImpl.java','public class MovieServiceImpl implements MovieService {','private shop.cart.api.facade.CartFacade leak;')),
- ('shared depende de un modulo','sharedAndAppDoNotBeDependedOnByModules',
+ ('shared depende de un modulo','sharedDependsOnNoModule',
    lambda: inject('shared/error/GlobalExceptionHandler.java','public class GlobalExceptionHandler {','private shop.catalog.api.facade.CatalogFacade leak;')),
- ('un modulo depende de app','sharedAndAppDoNotBeDependedOnByModules',
-   lambda: (newfile('app/PublicConfig.java','package shop.app;\n\n@org.springframework.context.annotation.Configuration\npublic class PublicConfig {\n}\n'),
-            inject('cart/internal/domain/service/CartServiceImpl.java','public class CartServiceImpl implements CartService {','private shop.app.PublicConfig leak;'))),
 ]
 if sh('git status --porcelain -- src').strip():
     sys.exit('src/ has uncommitted changes: commit or stash them first (the script restores src/ after each mutation).')

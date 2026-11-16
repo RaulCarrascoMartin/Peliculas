@@ -1,15 +1,15 @@
 openapi: 3.0.3
 info:
   title: Contrato pedidos
-  description: Creacion, consulta y cancelacion de pedidos. Crear un pedido reserva stock en el catalogo y captura el precio unitario de cada linea en ese momento; cancelarlo devuelve el stock. El campo userId de OrderRequest es provisional y se eliminara en el hito 08, cuando el usuario se deduzca del token. Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
-  version: 0.2.0
+  description: Creacion, consulta y cancelacion de pedidos. Crear un pedido reserva stock en el catalogo y captura el precio unitario de cada linea en ese momento; cancelarlo devuelve el stock. El usuario se deduce siempre del token; un pedido solo lo ven y cancelan su propietario (si no lo es, responde 404). Los errores usan el cuerpo uniforme ProblemDetail (RFC 9457) {type, title, status, detail, instance, errors}, producido por el GlobalExceptionHandler de la aplicacion.
+  version: 0.3.0
 tags:
-  - name: OrdersHttp
+  - name: OrderHttp
     description: Pedidos
 paths:
   /api/orders:
     post:
-      tags: [OrdersHttp]
+      tags: [OrderHttp]
       operationId: createOrder
       summary: Crea un pedido y reserva el stock de todas sus lineas (o de ninguna)
       requestBody:
@@ -17,18 +17,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrderRequest'
+              $ref: '#/components/schemas/CreateOrderRequest'
       responses:
         '201':
           description: Pedido creado en estado CREATED, con el precio unitario capturado en cada linea
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/OrderResponse'
         '400':
           description: Peticion invalida (sin lineas, cantidad menor que 1, campos obligatorios ausentes)
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorRespuesta'
         '401':
@@ -36,18 +36,18 @@ paths:
         '404':
           description: Alguna linea referencia un producto que no existe
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorRespuesta'
         '409':
           description: Stock insuficiente en alguna linea o producto sin precio; no se reserva nada
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorRespuesta'
   /api/orders/{id}:
     get:
-      tags: [OrdersHttp]
+      tags: [OrderHttp]
       operationId: getOrder
       summary: Consulta un pedido
       parameters:
@@ -58,14 +58,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/OrderResponse'
         '401':
           $ref: '#/components/responses/NoAutenticado'
         '404':
           $ref: '#/components/responses/OrderNotFound'
   /api/orders/{id}/cancel:
     post:
-      tags: [OrdersHttp]
+      tags: [OrderHttp]
       operationId: cancelOrder
       summary: Cancela un pedido en estado CREATED y devuelve su stock al catalogo
       parameters:
@@ -76,7 +76,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/OrderResponse'
         '401':
           $ref: '#/components/responses/NoAutenticado'
         '404':
@@ -84,7 +84,7 @@ paths:
         '409':
           description: El pedido no esta en estado CREATED (por ejemplo, ya estaba cancelado)
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorRespuesta'
 security:
@@ -107,31 +107,26 @@ components:
     NoAutenticado:
       description: Sin token o token invalido o caducado
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorRespuesta'
     OrderNotFound:
       description: El pedido no existe
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorRespuesta'
   schemas:
-    OrderRequest:
+    CreateOrderRequest:
       type: object
-      required: [userId, lines]
+      required: [lines]
       properties:
-        userId:
-          type: integer
-          format: int64
-          description: Provisional; se eliminara en el hito 08
-          example: 1
         lines:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/OrderLineRequest'
-    OrderLineRequest:
+            $ref: '#/components/schemas/CreateOrderLineRequest'
+    CreateOrderLineRequest:
       type: object
       required: [productId, quantity]
       properties:
@@ -144,7 +139,7 @@ components:
           format: int32
           minimum: 1
           example: 2
-    OrderLine:
+    OrderLineResponse:
       type: object
       required: [productId, title, unitPrice, quantity]
       properties:
@@ -165,7 +160,7 @@ components:
           type: integer
           format: int32
           example: 2
-    Order:
+    OrderResponse:
       type: object
       required: [id, userId, status, createdAt, total, lines]
       properties:
@@ -193,21 +188,30 @@ components:
         lines:
           type: array
           items:
-            $ref: '#/components/schemas/OrderLine'
+            $ref: '#/components/schemas/OrderLineResponse'
     ErrorRespuesta:
       type: object
-      description: Cuerpo uniforme de error, con el mismo formato que produce el GlobalExceptionHandler
-      required: [estado, mensaje, errores]
+      description: Cuerpo uniforme de error en formato ProblemDetail (RFC 9457, application/problem+json), producido por el GlobalExceptionHandler
+      required: [status, detail]
       properties:
-        estado:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+          example: Conflict
+        status:
           type: integer
           example: 409
-        mensaje:
+        detail:
           type: string
           example: No hay stock suficiente del producto 1
-        errores:
-          type: object
-          description: Mapa de errores por campo; vacio salvo en errores de validacion
-          additionalProperties:
+        instance:
+          type: string
+          example: /api/orders
+        errors:
+          type: array
+          description: Solo en errores de validacion (400); una entrada "campo, dos puntos, mensaje" por campo rechazado
+          items:
             type: string
-          example: {}
+          example: []

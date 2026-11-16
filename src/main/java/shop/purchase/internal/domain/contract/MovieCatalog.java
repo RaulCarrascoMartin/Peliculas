@@ -1,5 +1,7 @@
 package shop.purchase.internal.domain.contract;
 
+import shop.purchase.internal.domain.dto.CatalogMovieDto;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -7,5 +9,5 @@ import java.util.List;
 public interface MovieCatalog {
 
     /** Data of the requested movies; unknown ids are ignored. */
-    List<CatalogMovie> findByIds(Collection<Long> ids);
+    List<CatalogMovieDto> findByIds(Collection<Long> ids);
 }

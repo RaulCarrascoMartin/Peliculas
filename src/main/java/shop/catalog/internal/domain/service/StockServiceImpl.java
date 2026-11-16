@@ -1,8 +1,13 @@
 package shop.catalog.internal.domain.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import shop.catalog.internal.domain.dto.ReservationDto;
+import shop.catalog.internal.domain.dto.StockItemDto;
 import shop.catalog.internal.domain.exception.InsufficientStockException;
 import shop.catalog.internal.domain.exception.MovieNotFoundException;
 import shop.catalog.internal.domain.exception.MovieNotPurchasableException;
+import shop.catalog.internal.domain.mapper.MovieMapper;
 import shop.catalog.internal.domain.model.Movie;
 import shop.catalog.internal.domain.repository.MovieRepository;
 
@@ -14,40 +19,44 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Reserves all the lines or none, without a transaction: first validates everything against the data read and then
- * deducts each movie with a conditional subtraction; if one of those subtractions loses a race, it gives back what
- * was already deducted before failing.
+ * Reserves all the lines or none inside a transaction: first validates everything against the data read and then
+ * deducts each movie with a conditional subtraction. If one of those subtractions loses a race, the exception rolls
+ * the whole unit back; the explicit give-back is kept so the all-or-none guarantee also holds when the caller
+ * catches the failure and keeps its own transaction going.
  */
+@Service
 public class StockServiceImpl implements StockService {
 
     private final MovieRepository movies;
+    private final MovieMapper mapper;
 
-    public StockServiceImpl(MovieRepository movies) {
+    public StockServiceImpl(MovieRepository movies, MovieMapper mapper) {
         this.movies = movies;
+        this.mapper = mapper;
     }
 
     @Override
-    public List<Reservation> reserve(List<StockItem> items) {
+    @Transactional
+    public List<ReservationDto> reserve(List<StockItemDto> items) {
         Map<Long, Integer> quantityByMovie = groupByMovie(items);
         Map<Long, Movie> existing = movies.findAllById(quantityByMovie.keySet()).stream()
+                .map(mapper::toModel)
                 .collect(Collectors.toMap(Movie::getId, Function.identity()));
         validate(quantityByMovie, existing);
         deduct(quantityByMovie);
         return items.stream()
-                .map(i -> {
-                    Movie m = existing.get(i.movieId());
-                    return new Reservation(m.getId(), m.getTitle(), m.getPrice(), i.quantity());
-                })
+                .map(i -> mapper.toReservation(existing.get(i.movieId()), i.quantity()))
                 .toList();
     }
 
     @Override
-    public void release(List<StockItem> items) {
+    @Transactional
+    public void release(List<StockItemDto> items) {
         items.forEach(i -> movies.incrementStock(i.movieId(), i.quantity()));
     }
 
     /** Adds up the quantities of lines that repeat a movie, keeping the order of appearance. */
-    private static Map<Long, Integer> groupByMovie(List<StockItem> items) {
+    private static Map<Long, Integer> groupByMovie(List<StockItemDto> items) {
         Map<Long, Integer> quantities = new LinkedHashMap<>();
         items.forEach(i -> quantities.merge(i.movieId(), i.quantity(), Integer::sum));
         return quantities;

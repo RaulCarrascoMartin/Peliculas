@@ -6,8 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -22,6 +21,11 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Single translation point of exceptions to HTTP: every error of the API is a {@link ProblemDetail} (RFC 9457).
+ * It lives in {@code shared} because it serves every module and cannot see their internals: each module's
+ * exceptions extend the shared categories ({@link ResourceNotFoundException}, {@link ConflictException}...).
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -30,13 +34,13 @@ public class GlobalExceptionHandler {
     private static final String VALIDATION_MESSAGE = "Datos de entrada no válidos";
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> resourceNotFound(ResourceNotFoundException ex) {
-        return response(HttpStatus.NOT_FOUND, ex.getMessage(), Map.of());
+    public ProblemDetail resourceNotFound(ResourceNotFoundException ex) {
+        return problem(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<ApiError> conflict(ConflictException ex) {
-        return response(HttpStatus.CONFLICT, ex.getMessage(), Map.of());
+    public ProblemDetail conflict(ConflictException ex) {
+        return problem(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     /**
@@ -45,26 +49,26 @@ public class GlobalExceptionHandler {
      * the SQL nor the id.
      */
     @ExceptionHandler(ConcurrencyFailureException.class)
-    public ResponseEntity<ApiError> optimisticLock(ConcurrencyFailureException ex) {
-        return response(HttpStatus.CONFLICT, "El recurso fue modificado por otra petición; inténtalo de nuevo", Map.of());
+    public ProblemDetail optimisticLock(ConcurrencyFailureException ex) {
+        return problem(HttpStatus.CONFLICT, "El recurso fue modificado por otra petición; inténtalo de nuevo");
     }
 
     @ExceptionHandler(BusinessValidationException.class)
-    public ResponseEntity<ApiError> validation(BusinessValidationException ex) {
-        return response(HttpStatus.BAD_REQUEST, ex.getMessage(), Map.of());
+    public ProblemDetail validation(BusinessValidationException ex) {
+        return problem(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> validation(MethodArgumentNotValidException ex) {
+    public ProblemDetail validation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new LinkedHashMap<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             errors.putIfAbsent(jsonName(ex.getBindingResult().getTarget(), error.getField()), error.getDefaultMessage());
         }
-        return response(HttpStatus.BAD_REQUEST, VALIDATION_MESSAGE, errors);
+        return validationProblem(errors);
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<ApiError> parameterValidation(HandlerMethodValidationException ex) {
+    public ProblemDetail parameterValidation(HandlerMethodValidationException ex) {
         Map<String, String> errors = new LinkedHashMap<>();
         for (ParameterValidationResult result : ex.getParameterValidationResults()) {
             String name = result.getMethodParameter().getParameterName();
@@ -73,32 +77,32 @@ public class GlobalExceptionHandler {
                     .findFirst()
                     .ifPresent(error -> errors.putIfAbsent(key, error.getDefaultMessage()));
         }
-        return response(HttpStatus.BAD_REQUEST, VALIDATION_MESSAGE, errors);
+        return validationProblem(errors);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiError> unreadableBody(HttpMessageNotReadableException ex) {
-        return response(HttpStatus.BAD_REQUEST, "Cuerpo de la petición no válido", Map.of());
+    public ProblemDetail unreadableBody(HttpMessageNotReadableException ex) {
+        return problem(HttpStatus.BAD_REQUEST, "Cuerpo de la petición no válido");
     }
 
     @ExceptionHandler(TypeMismatchException.class)
-    public ResponseEntity<ApiError> invalidType(TypeMismatchException ex) {
-        return response(HttpStatus.BAD_REQUEST, "Parámetro con formato no válido", Map.of());
+    public ProblemDetail invalidType(TypeMismatchException ex) {
+        return problem(HttpStatus.BAD_REQUEST, "Parámetro con formato no válido");
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ApiError> invalidCredentials(InvalidCredentialsException ex) {
-        return response(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas", Map.of());
+    public ProblemDetail invalidCredentials(InvalidCredentialsException ex) {
+        return problem(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas");
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiError> unauthenticated(AuthenticationException ex) {
-        return response(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas", Map.of());
+    public ProblemDetail unauthenticated(AuthenticationException ex) {
+        return problem(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas");
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiError> accessDenied(AccessDeniedException ex) {
-        return response(HttpStatus.FORBIDDEN, "Acceso denegado", Map.of());
+    public ProblemDetail accessDenied(AccessDeniedException ex) {
+        return problem(HttpStatus.FORBIDDEN, "Acceso denegado");
     }
 
     /**
@@ -106,15 +110,14 @@ public class GlobalExceptionHandler {
      * keep their status; any other is a 500 that does not leak internal details.
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> unexpected(Exception ex) {
+    public ProblemDetail unexpected(Exception ex) {
         if (ex instanceof ErrorResponse errorResponse) {
-            HttpStatusCode status = errorResponse.getStatusCode();
             String detail = errorResponse.getBody().getDetail();
-            return ResponseEntity.status(status)
-                    .body(new ApiError(status.value(), detail != null ? detail : "Petición no válida", Map.of()));
+            return ProblemDetail.forStatusAndDetail(errorResponse.getStatusCode(),
+                    detail != null ? detail : "Petición no válida");
         }
         log.error("Unexpected error", ex);
-        return response(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor", Map.of());
+        return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor");
     }
 
     /** Field errors are reported under the JSON property name clients send, not the Java field name. */
@@ -132,7 +135,16 @@ public class GlobalExceptionHandler {
         return field;
     }
 
-    private ResponseEntity<ApiError> response(HttpStatus status, String message, Map<String, String> errors) {
-        return ResponseEntity.status(status).body(new ApiError(status.value(), message, errors));
+    private static ProblemDetail problem(HttpStatus status, String detail) {
+        return ProblemDetail.forStatusAndDetail(status, detail);
+    }
+
+    /** 400 with the property {@code errors}: one {@code "field: message"} entry per rejected field. */
+    private static ProblemDetail validationProblem(Map<String, String> errors) {
+        ProblemDetail problem = problem(HttpStatus.BAD_REQUEST, VALIDATION_MESSAGE);
+        problem.setProperty("errors", errors.entrySet().stream()
+                .map(e -> e.getKey() + ": " + e.getValue())
+                .toList());
+        return problem;
     }
 }

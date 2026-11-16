@@ -2,14 +2,15 @@ package shop.cart.api.http.controller;
 
 import com.jayway.jsonpath.JsonPath;
 import shop.shared.security.JwtTokens;
-import shop.catalog.internal.domain.model.Movie;
-import shop.catalog.internal.domain.repository.MovieRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -20,6 +21,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,7 +40,7 @@ class CartControllerIntegrationTest {
     private JwtTokens tokens;
 
     @Autowired
-    private MovieRepository movieRepository;
+    private JdbcClient jdbc;
 
     private final List<Long> createdMovies = new ArrayList<>();
 
@@ -70,12 +73,15 @@ class CartControllerIntegrationTest {
         return id;
     }
 
+    /** The HTTP contract of the catalog always gives a price: a movie without it is inserted directly in its table. */
     private long createMovieWithoutPrice() {
-        Movie withoutPrice = new Movie();
-        withoutPrice.setTitle("Silent");
-        Movie saved = movieRepository.save(withoutPrice);
-        createdMovies.add(saved.getId());
-        return saved.getId();
+        KeyHolder keys = new GeneratedKeyHolder();
+        jdbc.sql("insert into peliculas (titulo, stock) values (:titulo, 0)")
+                .param("titulo", "Silent")
+                .update(keys, "id");
+        long id = keys.getKey().longValue();
+        createdMovies.add(id);
+        return id;
     }
 
     private ResultActions add(long userId, long movieId) throws Exception {
@@ -145,9 +151,9 @@ class CartControllerIntegrationTest {
 
         add(2003, movie)
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.estado").value(409))
-                .andExpect(jsonPath("$.mensaje").isNotEmpty())
-                .andExpect(jsonPath("$.errores").isMap());
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.detail").isNotEmpty())
+                .andExpect(jsonPath("$.errors").doesNotExist());
 
         long other = createMovie();
         add(2003, other).andExpect(status().isCreated());
@@ -157,8 +163,8 @@ class CartControllerIntegrationTest {
     void addingUnknownMovieReturns404() throws Exception {
         add(2004, 99999999L)
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.estado").value(404))
-                .andExpect(jsonPath("$.mensaje").isNotEmpty());
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 
     @Test
@@ -173,8 +179,8 @@ class CartControllerIntegrationTest {
         mvc.perform(post("/api/carrito/lineas").header("Authorization", bearer(2006, "USUARIO"))
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.estado").value(400))
-                .andExpect(jsonPath("$.errores.peliculaId").isNotEmpty());
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("peliculaId: "))));
 
         mvc.perform(post("/api/carrito/lineas").header("Authorization", bearer(2006, "USUARIO"))
                         .contentType(MediaType.APPLICATION_JSON).content("not json"))
@@ -198,7 +204,7 @@ class CartControllerIntegrationTest {
     void removingMovieNotInCartReturns404() throws Exception {
         remove(2008, 99999999L)
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.estado").value(404));
+                .andExpect(jsonPath("$.status").value(404));
     }
 
     @Test

@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Anemic order: data only. The rules (reserve, cancel) live in the use cases. */
+/** Anemic order: data only. The rules (reserve, cancel) live in the service. */
 public class Order {
 
     private Long id;

@@ -1,39 +1,32 @@
 package shop.authentication.api.http.controller;
 
+import org.springframework.web.bind.annotation.RestController;
+import shop.authentication.api.http.AuthHttpApi;
 import shop.authentication.api.http.dto.LoginRequest;
 import shop.authentication.api.http.dto.RegisterRequest;
 import shop.authentication.api.http.dto.TokenResponse;
+import shop.authentication.api.http.mapper.AuthWebMapper;
+import shop.authentication.internal.domain.service.AuthService;
 
-import jakarta.validation.Valid;
-import shop.authentication.internal.application.usecase.Login;
-import shop.authentication.internal.application.usecase.RegisterUser;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
+/** HTTP entry of authentication: implements the hand-written contract {@link AuthHttpApi} and delegates. */
 @RestController
-@RequestMapping("/api/auth")
-public class AuthController {
+public class AuthController implements AuthHttpApi {
 
-    private final RegisterUser registerUser;
-    private final Login login;
+    private final AuthService authService;
+    private final AuthWebMapper mapper;
 
-    public AuthController(RegisterUser registerUser, Login login) {
-        this.registerUser = registerUser;
-        this.login = login;
+    public AuthController(AuthService authService, AuthWebMapper mapper) {
+        this.authService = authService;
+        this.mapper = mapper;
     }
 
-    @PostMapping("/registro")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void register(@Valid @RequestBody RegisterRequest request) {
-        registerUser.execute(request.email(), request.password());
+    @Override
+    public void register(RegisterRequest request) {
+        authService.register(mapper.toDto(request));
     }
 
-    @PostMapping("/login")
-    public TokenResponse login(@Valid @RequestBody LoginRequest request) {
-        return new TokenResponse(login.execute(request.email(), request.password()));
+    @Override
+    public TokenResponse login(LoginRequest request) {
+        return mapper.toResponse(authService.login(mapper.toDto(request)));
     }
 }

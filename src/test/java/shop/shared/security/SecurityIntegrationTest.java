@@ -66,7 +66,7 @@ class SecurityIntegrationTest {
     void protectedRouteWithoutTokenReturns401() throws Exception {
         mvc.perform(get("/api/protegido"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.estado").value(401));
+                .andExpect(jsonPath("$.status").value(401));
     }
 
     @Test
@@ -112,7 +112,7 @@ class SecurityIntegrationTest {
     void insufficientRoleReturns403() throws Exception {
         mvc.perform(get("/api/administracion").header("Authorization", bearer(tokens.issueToken(7L, "USUARIO"))))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.estado").value(403));
+                .andExpect(jsonPath("$.status").value(403));
     }
 
     @Test
@@ -142,7 +142,7 @@ class SecurityIntegrationTest {
     void nonJwtTokenReturns401() throws Exception {
         mvc.perform(get("/api/protegido").header("Authorization", bearer("this-is-not-a-jwt")))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.estado").value(401));
+                .andExpect(jsonPath("$.status").value(401));
     }
 
     @Test
@@ -153,7 +153,7 @@ class SecurityIntegrationTest {
 
         mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON).content(credentials))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.estado").value(409));
+                .andExpect(jsonPath("$.status").value(409));
     }
 
     @Test
@@ -161,7 +161,7 @@ class SecurityIntegrationTest {
         mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"nadie@correo.com\",\"contrasena\":\"Secreta123\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.mensaje").value("Credenciales incorrectas"));
+                .andExpect(jsonPath("$.detail").value("Credenciales incorrectas"));
     }
 
     /** The seven cart and purchase routes (requirement 7.1). */
@@ -185,7 +185,7 @@ class SecurityIntegrationTest {
         }
         mvc.perform(request)
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.estado").value(401));
+                .andExpect(jsonPath("$.status").value(401));
     }
 
     @Test

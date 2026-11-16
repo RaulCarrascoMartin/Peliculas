@@ -1,47 +1,43 @@
 package shop.purchase.api.http.controller;
 
-import shop.purchase.api.http.PurchasesHttpApi;
-import shop.purchase.api.http.mapper.PurchaseWebMapper;
-
-import shop.shared.security.CurrentUser;
-import shop.purchase.internal.application.usecase.CompletePurchase;
-import shop.purchase.internal.application.usecase.ListPurchases;
-import shop.purchase.internal.application.usecase.GetPurchase;
-import shop.purchase.api.http.dto.Purchase;
 import org.springframework.web.bind.annotation.RestController;
+import shop.purchase.api.http.PurchaseHttpApi;
+import shop.purchase.api.http.dto.PurchaseResponse;
+import shop.purchase.api.http.mapper.PurchaseWebMapper;
+import shop.purchase.internal.domain.service.PurchaseService;
+import shop.shared.security.CurrentUser;
 
 import java.util.List;
 
+/**
+ * HTTP entry of purchases: implements the contract generated from {@code compras-api.yml} and delegates. The user
+ * always comes from the token, never from the request.
+ */
 @RestController
-public class PurchaseController implements PurchasesHttpApi {
+public class PurchaseController implements PurchaseHttpApi {
 
-    private final CompletePurchase completePurchase;
-    private final ListPurchases listPurchases;
-    private final GetPurchase getPurchase;
+    private final PurchaseService purchaseService;
+    private final PurchaseWebMapper mapper;
     private final CurrentUser currentUser;
 
-    public PurchaseController(CompletePurchase completePurchase, ListPurchases listPurchases,
-                              GetPurchase getPurchase, CurrentUser currentUser) {
-        this.completePurchase = completePurchase;
-        this.listPurchases = listPurchases;
-        this.getPurchase = getPurchase;
+    public PurchaseController(PurchaseService purchaseService, PurchaseWebMapper mapper, CurrentUser currentUser) {
+        this.purchaseService = purchaseService;
+        this.mapper = mapper;
         this.currentUser = currentUser;
     }
 
     @Override
-    public Purchase completePurchase() {
-        return PurchaseWebMapper.toDto(completePurchase.execute(currentUser.id()));
+    public PurchaseResponse completePurchase() {
+        return mapper.toResponse(purchaseService.checkout(currentUser.id()));
     }
 
     @Override
-    public List<Purchase> listPurchases() {
-        return listPurchases.execute(currentUser.id()).stream()
-                .map(PurchaseWebMapper::toDto)
-                .toList();
+    public List<PurchaseResponse> listPurchases() {
+        return mapper.toResponses(purchaseService.historyOf(currentUser.id()));
     }
 
     @Override
-    public Purchase purchaseDetail(Long purchaseId) {
-        return PurchaseWebMapper.toDto(getPurchase.execute(currentUser.id(), purchaseId));
+    public PurchaseResponse purchaseDetail(Long purchaseId) {
+        return mapper.toResponse(purchaseService.detailOf(currentUser.id(), purchaseId));
     }
 }

@@ -1,10 +1,15 @@
 package shop.orders.internal.domain.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import shop.orders.internal.domain.contract.StockReservation;
+import shop.orders.internal.domain.dto.CreateOrderDto;
+import shop.orders.internal.domain.dto.OrderDto;
+import shop.orders.internal.domain.dto.ReservedItemDto;
 import shop.orders.internal.domain.exception.OrderCannotBeCancelledException;
 import shop.orders.internal.domain.exception.OrderNotFoundException;
+import shop.orders.internal.domain.mapper.OrderMapper;
 import shop.orders.internal.domain.model.Order;
-import shop.orders.internal.domain.model.OrderLine;
 import shop.orders.internal.domain.model.OrderStatus;
 import shop.orders.internal.domain.repository.OrderRepository;
 
@@ -12,54 +17,67 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * {@code create} and {@code cancel} run in a transaction: the stock is reserved or released through the catalog
+ * facade, which joins it, and the order is saved with its lines in the same unit. If saving fails, the reservation is
+ * also released explicitly so the stock never stays reserved without an order.
+ */
+@Service
 public class OrderServiceImpl implements OrderService {
 
     private final StockReservation stock;
     private final OrderRepository orders;
+    private final OrderMapper mapper;
 
-    public OrderServiceImpl(StockReservation stock, OrderRepository orders) {
+    public OrderServiceImpl(StockReservation stock, OrderRepository orders, OrderMapper mapper) {
         this.stock = stock;
         this.orders = orders;
+        this.mapper = mapper;
     }
 
     @Override
-    public Order create(Long userId, List<StockReservation.Item> items) {
-        List<StockReservation.Reserved> reserved = stock.reserve(items);
+    @Transactional
+    public OrderDto create(CreateOrderDto request) {
+        List<ReservedItemDto> reserved = stock.reserve(request.lines());
         Order order = new Order();
-        order.setUserId(userId);
+        order.setUserId(request.userId());
         order.setStatus(OrderStatus.CREATED);
         order.setCreatedAt(Instant.now());
-        order.setLines(reserved.stream().map(OrderServiceImpl::toOrderLine).toList());
+        order.setLines(mapper.toLines(reserved));
         order.setTotal(order.getLines().stream()
                 .map(l -> l.getUnitPrice().multiply(BigDecimal.valueOf(l.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
-        return orders.save(order);
+        try {
+            return orders.save(mapper.toDto(order));
+        } catch (RuntimeException e) {
+            stock.release(mapper.toStockItems(order.getLines()));
+            throw e;
+        }
     }
 
     @Override
-    public Order find(Long id) {
-        return orders.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
+    @Transactional(readOnly = true)
+    public OrderDto find(Long userId, Long id) {
+        return mapper.toDto(load(userId, id));
     }
 
     @Override
-    public Order cancel(Long id) {
-        Order order = find(id);
+    @Transactional
+    public OrderDto cancel(Long userId, Long id) {
+        Order order = load(userId, id);
         if (order.getStatus() != OrderStatus.CREATED || !orders.cancelIfCreated(id)) {
             throw new OrderCannotBeCancelledException(id);
         }
-        stock.release(order.getLines().stream()
-                .map(l -> new StockReservation.Item(l.getProductId(), l.getQuantity()))
-                .toList());
+        stock.release(mapper.toStockItems(order.getLines()));
         order.setStatus(OrderStatus.CANCELLED);
-        return order;
+        return mapper.toDto(order);
     }
 
-    private static OrderLine toOrderLine(StockReservation.Reserved reserved) {
-        OrderLine line = new OrderLine();
-        line.setProductId(reserved.productId());
-        line.setTitle(reserved.title());
-        line.setUnitPrice(reserved.unitPrice());
-        line.setQuantity(reserved.quantity());
-        return line;
+    /** An order of another user is reported as missing, so its existence is not revealed. */
+    private Order load(Long userId, Long id) {
+        return orders.findById(id)
+                .map(mapper::toModel)
+                .filter(o -> userId.equals(o.getUserId()))
+                .orElseThrow(() -> new OrderNotFoundException(id));
     }
 }

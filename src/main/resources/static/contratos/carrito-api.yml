@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrato carrito
-  description: Endpoints del carrito del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
+  description: Endpoints del carrito del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ProblemDetail (RFC 9457) {type, title, status, detail, instance, errors}, producido por el GlobalExceptionHandler de la aplicacion.
   version: 1.0.0
 tags:
   - name: CartHttp
@@ -18,7 +18,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Cart'
+                $ref: '#/components/schemas/CartResponse'
               example:
                 lineas:
                   - peliculaId: 1
@@ -46,7 +46,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddLine'
+              $ref: '#/components/schemas/AddCartLineRequest'
             example:
               peliculaId: 1
       responses:
@@ -55,7 +55,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CartLine'
+                $ref: '#/components/schemas/CartLineResponse'
               example:
                 peliculaId: 1
                 titulo: Alien
@@ -100,56 +100,62 @@ components:
     NoAutenticado:
       description: Sin token o token invalido o caducado
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            estado: 401
-            mensaje: No autenticado
-            errores: {}
+            type: about:blank
+            title: Unauthorized
+            status: 401
+            detail: No autenticado
     CuerpoInvalido:
       description: El cuerpo no incluye un identificador de pelicula valido
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            estado: 400
-            mensaje: Peticion invalida
-            errores:
-              peliculaId: debe ser positivo
+            type: about:blank
+            title: Bad Request
+            status: 400
+            detail: Peticion invalida
+            errors:
+              - 'peliculaId: debe ser positivo'
     PeliculaInexistente:
       description: La pelicula no existe en el catalogo
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            estado: 404
-            mensaje: Recurso no encontrado
-            errores: {}
+            type: about:blank
+            title: Not Found
+            status: 404
+            detail: Recurso no encontrado
     LineaInexistente:
       description: La pelicula no esta en el carrito del usuario
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            estado: 404
-            mensaje: Recurso no encontrado
-            errores: {}
+            type: about:blank
+            title: Not Found
+            status: 404
+            detail: Recurso no encontrado
     ConflictoLinea:
       description: La pelicula ya esta en el carrito o no tiene precio y no es comprable
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            estado: 409
-            mensaje: La pelicula ya esta en el carrito
-            errores: {}
+            type: about:blank
+            title: Conflict
+            status: 409
+            detail: La pelicula ya esta en el carrito
   schemas:
-    Cart:
+    CartResponse:
       type: object
       description: Carrito del usuario; el precio de cada linea es el precio vivo de la pelicula
       required: [lineas, total]
@@ -157,13 +163,13 @@ components:
         lineas:
           type: array
           items:
-            $ref: '#/components/schemas/CartLine'
+            $ref: '#/components/schemas/CartLineResponse'
         total:
           type: number
           description: Suma de los precios actuales de las lineas; cero si el carrito esta vacio
           multipleOf: 0.01
           example: 12.99
-    CartLine:
+    CartLineResponse:
       type: object
       required: [peliculaId, titulo, precio]
       properties:
@@ -179,7 +185,7 @@ components:
           description: Precio vivo de la pelicula al consultar
           multipleOf: 0.01
           example: 12.99
-    AddLine:
+    AddCartLineRequest:
       type: object
       required: [peliculaId]
       properties:
@@ -189,19 +195,27 @@ components:
           example: 1
     ErrorResponse:
       type: object
-      description: Cuerpo uniforme de error, con el mismo formato que produce el GlobalExceptionHandler
-      required: [estado, mensaje, errores]
+      description: Cuerpo uniforme de error en formato ProblemDetail (RFC 9457, application/problem+json), producido por el GlobalExceptionHandler
+      required: [status, detail]
       properties:
-        estado:
-          type: integer
-          example: 400
-        mensaje:
+        type:
           type: string
-          example: Peticion invalida
-        errores:
-          type: object
-          description: Mapa de errores por campo; vacio salvo en errores de validacion
-          additionalProperties:
+          example: about:blank
+        title:
+          type: string
+          example: Conflict
+        status:
+          type: integer
+          example: 409
+        detail:
+          type: string
+          example: La pelicula ya esta en el carrito
+        instance:
+          type: string
+          example: /api/carrito/lineas
+        errors:
+          type: array
+          description: Solo en errores de validacion (400); una entrada "campo, dos puntos, mensaje" por campo rechazado
+          items:
             type: string
-          example:
-            peliculaId: debe ser positivo
+          example: []

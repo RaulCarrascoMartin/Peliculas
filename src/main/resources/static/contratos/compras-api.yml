@@ -1,15 +1,15 @@
 openapi: 3.0.3
 info:
   title: Contrato compras
-  description: Historial y finalizacion de compras del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ErrorRespuesta {estado, mensaje, errores}, producido por el GlobalExceptionHandler de la aplicacion.
+  description: Historial y finalizacion de compras del cliente autenticado. El usuario siempre se deduce del token JWT (ningun endpoint acepta usuario por cuerpo o ruta). Los errores usan el cuerpo uniforme ProblemDetail (RFC 9457) {type, title, status, detail, instance, errors}, producido por el GlobalExceptionHandler de la aplicacion.
   version: 1.0.0
 tags:
-  - name: PurchasesHttp
+  - name: PurchaseHttp
     description: Compras del usuario actual
 paths:
   /api/compras:
     post:
-      tags: [PurchasesHttp]
+      tags: [PurchaseHttp]
       operationId: completePurchase
       summary: Finaliza la compra con el contenido del carrito (checkout atomico)
       responses:
@@ -18,7 +18,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purchase'
+                $ref: '#/components/schemas/PurchaseResponse'
               example:
                 id: 10
                 fecha: '2026-10-27T10:15:30'
@@ -33,7 +33,7 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictoCompra'
     get:
-      tags: [PurchasesHttp]
+      tags: [PurchaseHttp]
       operationId: listPurchases
       summary: Historial de compras del usuario, ordenado por fecha descendente
       responses:
@@ -44,12 +44,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Purchase'
+                  $ref: '#/components/schemas/PurchaseResponse'
         '401':
           $ref: '#/components/responses/NoAutenticado'
   /api/compras/{compraId}:
     get:
-      tags: [PurchasesHttp]
+      tags: [PurchaseHttp]
       operationId: purchaseDetail
       summary: Detalle de una compra propia (una ajena o inexistente responde 404, nunca 403)
       parameters:
@@ -65,7 +65,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purchase'
+                $ref: '#/components/schemas/PurchaseResponse'
         '401':
           $ref: '#/components/responses/NoAutenticado'
         '404':
@@ -82,35 +82,38 @@ components:
     NoAutenticado:
       description: Sin token o token invalido o caducado
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            estado: 401
-            mensaje: No autenticado
-            errores: {}
+            type: about:blank
+            title: Unauthorized
+            status: 401
+            detail: No autenticado
     ConflictoCompra:
       description: Carrito vacio, alguna pelicula desaparecida o sin precio, o compra simultanea doble
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            estado: 409
-            mensaje: El carrito esta vacio
-            errores: {}
+            type: about:blank
+            title: Conflict
+            status: 409
+            detail: El carrito esta vacio
     CompraInexistente:
       description: La compra no existe o no es del usuario actual
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            estado: 404
-            mensaje: Recurso no encontrado
-            errores: {}
+            type: about:blank
+            title: Not Found
+            status: 404
+            detail: Recurso no encontrado
   schemas:
-    Purchase:
+    PurchaseResponse:
       type: object
       description: Compra completada; titulo y precio de sus lineas son snapshot, no cambian aunque la pelicula se edite o elimine
       required: [id, fecha, estado, lineas, total]
@@ -131,13 +134,13 @@ components:
         lineas:
           type: array
           items:
-            $ref: '#/components/schemas/PurchaseLine'
+            $ref: '#/components/schemas/PurchaseLineResponse'
         total:
           type: number
           description: Suma de los precios unitarios; se almacena con la compra
           multipleOf: 0.01
           example: 12.99
-    PurchaseLine:
+    PurchaseLineResponse:
       type: object
       required: [peliculaId, titulo, precioUnitario]
       properties:
@@ -156,18 +159,27 @@ components:
           example: 12.99
     ErrorResponse:
       type: object
-      description: Cuerpo uniforme de error, con el mismo formato que produce el GlobalExceptionHandler
-      required: [estado, mensaje, errores]
+      description: Cuerpo uniforme de error en formato ProblemDetail (RFC 9457, application/problem+json), producido por el GlobalExceptionHandler
+      required: [status, detail]
       properties:
-        estado:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+          example: Conflict
+        status:
           type: integer
           example: 409
-        mensaje:
+        detail:
           type: string
           example: El carrito esta vacio
-        errores:
-          type: object
-          description: Mapa de errores por campo; vacio salvo en errores de validacion
-          additionalProperties:
+        instance:
+          type: string
+          example: /api/compras
+        errors:
+          type: array
+          description: Solo en errores de validacion (400); una entrada "campo, dos puntos, mensaje" por campo rechazado
+          items:
             type: string
-          example: {}
+          example: []

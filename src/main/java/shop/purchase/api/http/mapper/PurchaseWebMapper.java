@@ -1,28 +1,35 @@
 package shop.purchase.api.http.mapper;
 
-import shop.purchase.api.http.dto.Purchase;
-import shop.purchase.internal.application.dto.PurchaseLineView;
-import shop.purchase.internal.application.dto.PurchaseView;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import shop.purchase.api.http.dto.PurchaseLineResponse;
+import shop.purchase.api.http.dto.PurchaseResponse;
+import shop.purchase.internal.domain.dto.PurchaseDto;
+import shop.purchase.internal.domain.dto.PurchaseLineDto;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
-/** Converts the use case views into the DTO of the HTTP contract. */
-public final class PurchaseWebMapper {
+/** DTO of the purchase domain → DTO of the HTTP contract (the contract has no request bodies). */
+@Mapper(componentModel = "spring")
+public interface PurchaseWebMapper {
 
-    private PurchaseWebMapper() {
-    }
+    @Mapping(target = "fecha", source = "purchasedAt")
+    @Mapping(target = "estado", source = "status")
+    @Mapping(target = "lineas", source = "lines")
+    PurchaseResponse toResponse(PurchaseDto purchase);
 
-    /** The view holds a {@code LocalDateTime} (server time); the contract publishes {@code date-time} with an offset. */
-    public static Purchase toDto(PurchaseView view) {
-        List<shop.purchase.api.http.dto.PurchaseLine> lines = view.lines().stream()
-                .map(PurchaseWebMapper::toDto)
-                .toList();
-        return new Purchase(view.id(), view.purchasedAt().atZone(ZoneId.systemDefault()).toOffsetDateTime(),
-                Purchase.EstadoEnum.valueOf(view.status()), lines, view.total());
-    }
+    List<PurchaseResponse> toResponses(List<PurchaseDto> purchases);
 
-    public static shop.purchase.api.http.dto.PurchaseLine toDto(PurchaseLineView line) {
-        return new shop.purchase.api.http.dto.PurchaseLine(line.movieId(), line.title(), line.unitPrice());
+    @Mapping(target = "peliculaId", source = "movieId")
+    @Mapping(target = "titulo", source = "title")
+    @Mapping(target = "precioUnitario", source = "unitPrice")
+    PurchaseLineResponse toResponse(PurchaseLineDto line);
+
+    /** The domain holds a {@code LocalDateTime} (server time); the contract publishes {@code date-time} with an offset. */
+    default OffsetDateTime toOffset(LocalDateTime dateTime) {
+        return dateTime == null ? null : dateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
     }
 }

@@ -1,17 +1,25 @@
 package shop.rating.internal.domain.repository;
 
-import shop.rating.internal.domain.model.Rating;
+import shop.rating.internal.domain.dto.RatingDto;
+import shop.rating.internal.domain.exception.RatingAlreadyExistsException;
 
 import java.util.List;
 import java.util.Optional;
 
+/** Rating persistence; the implementation uses JDBC and lives in {@code internal.persistence}. */
 public interface RatingRepository {
 
-    Rating save(Rating rating);
+    /**
+     * Inserts the rating (no id) or updates it (with id) and returns it with its id.
+     *
+     * @throws RatingAlreadyExistsException if the user already has another rating of that movie
+     */
+    RatingDto save(RatingDto rating);
 
-    Optional<Rating> findByUserIdAndMovieId(Long userId, Long movieId);
+    Optional<RatingDto> findByUserIdAndMovieId(Long userId, Long movieId);
 
-    List<Rating> findByMovieId(Long movieId);
+    /** Ratings of the movie, sorted by id. */
+    List<RatingDto> findByMovieId(Long movieId);
 
     void deleteByMovieId(Long movieId);
 }

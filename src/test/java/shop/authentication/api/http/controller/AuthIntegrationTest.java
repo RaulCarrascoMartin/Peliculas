@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Requirement 0 with the whole application: account with user role, encoded password and token with id and role. */
@@ -40,13 +41,15 @@ class AuthIntegrationTest {
 
     @Test
     void registerCreatesAccountWithUserRoleAndEncodedPassword() throws Exception {
-        mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON).content(credentials()))
-                .andExpect(status().isCreated());
+        if (users.findByEmail(EMAIL).isEmpty()) {
+            mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON).content(credentials()))
+                    .andExpect(status().isCreated());
+        }
 
         var user = users.findByEmail(EMAIL).orElseThrow();
-        assertEquals(Role.USUARIO, user.getRole());
-        assertNotEquals(PASSWORD, user.getPassword());
-        assertTrue(user.getPassword().startsWith("$2"), "must be a BCrypt hash");
+        assertEquals(Role.USUARIO, user.role());
+        assertNotEquals(PASSWORD, user.passwordHash());
+        assertTrue(user.passwordHash().startsWith("$2"), "must be a BCrypt hash");
     }
 
     @Test
@@ -61,7 +64,26 @@ class AuthIntegrationTest {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
         var data = tokens.parseToken(JsonPath.read(body, "$.token"));
-        assertEquals(users.findByEmail(EMAIL).orElseThrow().getId(), data.id());
+        assertEquals(users.findByEmail(EMAIL).orElseThrow().id(), data.id());
         assertEquals("USUARIO", data.role());
+    }
+
+    @Test
+    void secondRegistrationOfTheSameEmailGives409AndWrongCredentialsGive401() throws Exception {
+        String other = "{\"email\":\"duplicado.auth@correo.com\",\"contrasena\":\"" + PASSWORD + "\"}";
+        mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON).content(other))
+                .andExpect(status().isCreated());
+
+        mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON).content(other))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("El email ya está registrado"));
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"duplicado.auth@correo.com\",\"contrasena\":\"otra-clave\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.detail").value("Credenciales incorrectas"));
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"nadie.auth@correo.com\",\"contrasena\":\"" + PASSWORD + "\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.detail").value("Credenciales incorrectas"));
     }
 }

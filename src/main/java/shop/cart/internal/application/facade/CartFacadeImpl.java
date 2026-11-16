@@ -1,21 +1,19 @@
 package shop.cart.internal.application.facade;
 
-import shop.cart.internal.application.usecase.ClearCart;
-
+import org.springframework.stereotype.Component;
 import shop.cart.api.facade.CartFacade;
 import shop.cart.internal.domain.service.CartService;
 
 import java.util.List;
 
-/** Module exit point: implements {@link CartFacade} for {@code purchase}. */
+/** Module exit point: implements {@link CartFacade} for {@code purchase} by delegating to the service. */
+@Component
 public class CartFacadeImpl implements CartFacade {
 
     private final CartService cart;
-    private final ClearCart clear;
 
-    public CartFacadeImpl(CartService cart, ClearCart clear) {
+    public CartFacadeImpl(CartService cart) {
         this.cart = cart;
-        this.clear = clear;
     }
 
     @Override
@@ -25,6 +23,6 @@ public class CartFacadeImpl implements CartFacade {
 
     @Override
     public void clear(Long userId) {
-        clear.execute(userId);
+        cart.clear(userId);
     }
 }

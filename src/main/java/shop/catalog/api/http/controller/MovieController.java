@@ -1,100 +1,61 @@
 package shop.catalog.api.http.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RestController;
+import shop.catalog.api.http.MovieHttpApi;
+import shop.catalog.api.http.dto.MoviePageResponse;
 import shop.catalog.api.http.dto.MovieRequest;
 import shop.catalog.api.http.dto.MovieResponse;
+import shop.catalog.api.http.mapper.MovieWebMapper;
+import shop.catalog.internal.domain.service.MovieService;
 
-import shop.catalog.api.http.dto.MoviePage;
-import shop.shared.pagination.PageQuery;
-import shop.shared.error.BusinessValidationException;
-import shop.shared.pagination.PageResult;
-import jakarta.validation.Valid;
 import java.util.List;
-import shop.catalog.internal.application.usecase.SearchMovies;
-import shop.catalog.internal.application.usecase.CreateMovie;
-import shop.catalog.internal.application.usecase.UpdateMovie;
-import shop.catalog.internal.application.usecase.DeleteMovie;
-import shop.catalog.internal.application.usecase.GetMovie;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 
+/** HTTP entry of the catalog: implements the contract {@link MovieHttpApi} and delegates. */
 @RestController
-@RequestMapping("/api/peliculas")
-public class MovieController {
+public class MovieController implements MovieHttpApi {
 
     private static final String ADMIN_ONLY = "hasRole('ADMIN')";
-    private static final int MAX_PAGE_SIZE = 2000;
 
-    private final SearchMovies searchMovies;
-    private final GetMovie getMovie;
-    private final CreateMovie createMovie;
-    private final UpdateMovie updateMovie;
-    private final DeleteMovie deleteMovie;
+    private final MovieService movieService;
+    private final MovieWebMapper mapper;
 
-    public MovieController(SearchMovies searchMovies, GetMovie getMovie, CreateMovie createMovie,
-                           UpdateMovie updateMovie, DeleteMovie deleteMovie) {
-        this.searchMovies = searchMovies;
-        this.getMovie = getMovie;
-        this.createMovie = createMovie;
-        this.updateMovie = updateMovie;
-        this.deleteMovie = deleteMovie;
+    public MovieController(MovieService movieService, MovieWebMapper mapper) {
+        this.movieService = movieService;
+        this.mapper = mapper;
     }
 
-    @GetMapping
-    public MoviePage searchMovies(@RequestParam(name = "titulo", required = false) String title,
-                                  @RequestParam(name = "genero", required = false) String genre,
-                                  @RequestParam(name = "anio", required = false) Integer year,
-                                  @RequestParam(required = false) String director,
-                                  @RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "20") int size,
-                                  @RequestParam(name = "sort", defaultValue = "id") List<String> sort) {
-        if (page < 0 || size < 1 || size > MAX_PAGE_SIZE) {
-            throw new BusinessValidationException("Paginación no válida");
-        }
-        PageQuery query = new PageQuery(page, size, sort.stream().map(MovieController::toSort).toList());
-        PageResult<MovieResponse> result = searchMovies.execute(title, genre, year, director, query)
-                .map(MovieResponse::from);
-        return MoviePage.from(result);
+    @Override
+    public MoviePageResponse searchMovies(String title, String genre, Integer year, String director,
+                                          int page, int size, List<String> sort) {
+        return mapper.toPageResponse(
+                movieService.search(title, genre, year, director, mapper.toPageQuery(page, size, sort)));
     }
 
-    /** {@code property} or {@code property,asc|desc}; ascending by default. */
-    private static PageQuery.Sort toSort(String param) {
-        String[] parts = param.split(",");
-        boolean descending = parts.length > 1 && parts[1].trim().equalsIgnoreCase("desc");
-        return new PageQuery.Sort(parts[0].trim(), !descending);
+    @Override
+    public MovieResponse getMovie(Long id) {
+        return mapper.toResponse(movieService.find(id));
     }
 
-    @GetMapping("/{id}")
-    public MovieResponse getMovie(@PathVariable Long id) {
-        return MovieResponse.from(getMovie.execute(id));
-    }
-
-    @PostMapping
+    @Override
     @PreAuthorize(ADMIN_ONLY)
-    @ResponseStatus(HttpStatus.CREATED)
-    public MovieResponse createMovie(@Valid @RequestBody MovieRequest request) {
-        return MovieResponse.from(createMovie.execute(request.toMovieData()));
+    public ResponseEntity<MovieResponse> createMovie(MovieRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(mapper.toResponse(movieService.create(mapper.toDto(request))));
     }
 
-    @PutMapping("/{id}")
+    @Override
     @PreAuthorize(ADMIN_ONLY)
-    public MovieResponse updateMovie(@PathVariable Long id, @Valid @RequestBody MovieRequest request) {
-        return MovieResponse.from(updateMovie.execute(id, request.toMovieData()));
+    public MovieResponse updateMovie(Long id, MovieRequest request) {
+        return mapper.toResponse(movieService.update(id, mapper.toDto(request)));
     }
 
-    @DeleteMapping("/{id}")
+    @Override
     @PreAuthorize(ADMIN_ONLY)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteMovie(@PathVariable Long id) {
-        deleteMovie.execute(id);
+    public ResponseEntity<Void> deleteMovie(Long id) {
+        movieService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

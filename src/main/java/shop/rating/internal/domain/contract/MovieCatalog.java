@@ -1,5 +1,7 @@
 package shop.rating.internal.domain.contract;
 
+import shop.rating.internal.domain.dto.CatalogMovieDto;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -12,5 +14,5 @@ public interface MovieCatalog {
     void updateAverageRating(Long movieId, double average);
 
     /** Data of the requested movies, sorted by id; unknown ids are ignored. */
-    List<CatalogMovie> findByIds(Collection<Long> ids);
+    List<CatalogMovieDto> findByIds(Collection<Long> ids);
 }

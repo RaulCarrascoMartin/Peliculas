@@ -1,31 +1,29 @@
 package shop.rating.api.http.controller;
 
+import org.springframework.web.bind.annotation.RestController;
+import shop.rating.api.http.RatingHttpApi;
 import shop.rating.api.http.dto.RatingRequest;
 import shop.rating.api.http.dto.RatingResponse;
-
+import shop.rating.api.http.mapper.RatingWebMapper;
+import shop.rating.internal.domain.service.RatingService;
 import shop.shared.security.CurrentUser;
-import jakarta.validation.Valid;
-import shop.rating.internal.application.usecase.RateMovie;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
+/** HTTP entry of ratings: implements the {@link RatingHttpApi} contract and delegates. */
 @RestController
-@RequestMapping("/api/peliculas/{movieId}/valoracion")
-public class RatingController {
+public class RatingController implements RatingHttpApi {
 
-    private final RateMovie rateMovie;
+    private final RatingService ratingService;
+    private final RatingWebMapper mapper;
     private final CurrentUser currentUser;
 
-    public RatingController(RateMovie rateMovie, CurrentUser currentUser) {
-        this.rateMovie = rateMovie;
+    public RatingController(RatingService ratingService, RatingWebMapper mapper, CurrentUser currentUser) {
+        this.ratingService = ratingService;
+        this.mapper = mapper;
         this.currentUser = currentUser;
     }
 
-    @PutMapping
-    public RatingResponse rateMovie(@PathVariable Long movieId, @Valid @RequestBody RatingRequest request) {
-        return RatingResponse.from(rateMovie.execute(currentUser.id(), movieId, request.score(), request.comment()));
+    @Override
+    public RatingResponse rateMovie(Long movieId, RatingRequest request) {
+        return mapper.toResponse(ratingService.rate(mapper.toDto(currentUser.id(), movieId, request)));
     }
 }

@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -77,10 +79,10 @@ class ErrorHandlingMvcTest {
     void failedValidationReturns400WithFieldErrors() throws Exception {
         mvc.perform(post("/validacion").contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.estado").value(400))
-                .andExpect(jsonPath("$.mensaje").isNotEmpty())
-                .andExpect(jsonPath("$.errores.title").isNotEmpty())
-                .andExpect(jsonPath("$.errores.year").isNotEmpty());
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").isNotEmpty())
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("title: "))))
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("year: "))));
     }
 
     @Test
@@ -94,65 +96,65 @@ class ErrorHandlingMvcTest {
     void unknownResourceReturns404() throws Exception {
         mvc.perform(get("/not-found"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.estado").value(404))
-                .andExpect(jsonPath("$.mensaje").value("Película 7 no encontrada"))
-                .andExpect(jsonPath("$.errores").isEmpty());
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("Película 7 no encontrada"))
+                .andExpect(jsonPath("$.errors").doesNotExist());
     }
 
     @Test
     void conflictReturns409() throws Exception {
         mvc.perform(get("/conflicto"))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.estado").value(409))
-                .andExpect(jsonPath("$.mensaje").value("El email ya está registrado"));
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.detail").value("El email ya está registrado"));
     }
 
     @Test
     void badCredentialsReturn401WithoutRevealingReason() throws Exception {
         mvc.perform(get("/credenciales"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.estado").value(401))
-                .andExpect(jsonPath("$.mensaje").value("Credenciales incorrectas"));
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").value("Credenciales incorrectas"));
     }
 
     @Test
     void insufficientRoleReturns403() throws Exception {
         mvc.perform(get("/prohibido"))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.estado").value(403))
-                .andExpect(jsonPath("$.mensaje").value("Acceso denegado"));
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.detail").value("Acceso denegado"));
     }
 
     @Test
     void malformedJsonReturnsUniform400() throws Exception {
         mvc.perform(post("/validacion").contentType(MediaType.APPLICATION_JSON).content("{title"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.estado").value(400))
-                .andExpect(jsonPath("$.mensaje").isNotEmpty())
-                .andExpect(jsonPath("$.errores").isEmpty());
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").isNotEmpty())
+                .andExpect(jsonPath("$.errors").doesNotExist());
     }
 
     @Test
     void parameterValidationReturns400WithFieldErrors() throws Exception {
         mvc.perform(get("/page").param("numero", "-1"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.estado").value(400))
-                .andExpect(jsonPath("$.errores.numero").isNotEmpty());
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("numero: "))));
     }
 
     @Test
     void methodNotAllowedReturnsUniform405() throws Exception {
         mvc.perform(post("/conflicto"))
                 .andExpect(status().isMethodNotAllowed())
-                .andExpect(jsonPath("$.estado").value(405))
-                .andExpect(jsonPath("$.mensaje").isNotEmpty());
+                .andExpect(jsonPath("$.status").value(405))
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 
     @Test
     void unexpectedErrorReturns500WithoutLeakingDetails() throws Exception {
         mvc.perform(get("/inesperado"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.estado").value(500))
-                .andExpect(jsonPath("$.mensaje").value("Error interno del servidor"));
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.detail").value("Error interno del servidor"));
     }
 }

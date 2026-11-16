@@ -55,10 +55,9 @@ async function api(ruta, { metodo = "GET", cuerpo } = {}) {
   const datos = texto ? JSON.parse(texto) : null;
   if (!respuesta.ok) {
     if (respuesta.status === 401 && estado.token) cerrarSesion(false);
-    const detalle = datos?.errores && Object.keys(datos.errores).length
-      ? " (" + Object.entries(datos.errores).map(([c, m]) => `${c}: ${m}`).join(", ") + ")"
-      : "";
-    const mensaje = `${respuesta.status} · ${datos?.mensaje ?? "Error"}${detalle}`;
+    // Los errores llegan como ProblemDetail (RFC 9457): detail y, en validación, errors ["campo: mensaje"].
+    const detalle = datos?.errors?.length ? " (" + datos.errors.join(", ") + ")" : "";
+    const mensaje = `${respuesta.status} · ${datos?.detail ?? "Error"}${detalle}`;
     aviso(mensaje, true);
     throw new Error(mensaje);
   }

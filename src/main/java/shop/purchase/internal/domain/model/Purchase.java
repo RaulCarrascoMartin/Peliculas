@@ -2,8 +2,13 @@ package shop.purchase.internal.domain.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-/** Completed purchase: the total is stored and equals the sum of the frozen prices of its lines. */
+/**
+ * Completed purchase with its lines: the total is stored and equals the sum of their frozen prices. Anemic: data
+ * only, the rules live in the service.
+ */
 public class Purchase {
 
     private Long id;
@@ -15,6 +20,8 @@ public class Purchase {
     private BigDecimal total;
 
     private PurchaseStatus status;
+
+    private List<PurchaseLine> lines = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -54,5 +61,13 @@ public class Purchase {
 
     public void setStatus(PurchaseStatus status) {
         this.status = status;
+    }
+
+    public List<PurchaseLine> getLines() {
+        return lines;
+    }
+
+    public void setLines(List<PurchaseLine> lines) {
+        this.lines = lines;
     }
 }

@@ -140,9 +140,9 @@ class PurchaseControllerIntegrationTest {
     void completeWithEmptyCartReturns409WithErrorBody() throws Exception {
         complete(3003)
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.estado").value(409))
-                .andExpect(jsonPath("$.mensaje").isNotEmpty())
-                .andExpect(jsonPath("$.errores").isMap());
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.detail").isNotEmpty())
+                .andExpect(jsonPath("$.errors").doesNotExist());
     }
 
     @Test
@@ -153,8 +153,8 @@ class PurchaseControllerIntegrationTest {
 
         detail(3005, purchase)
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.estado").value(404))
-                .andExpect(jsonPath("$.mensaje").isNotEmpty());
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").isNotEmpty());
         detail(3004, 99999999L).andExpect(status().isNotFound());
     }
 

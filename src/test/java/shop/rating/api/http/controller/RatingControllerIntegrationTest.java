@@ -19,6 +19,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -101,7 +103,7 @@ class RatingControllerIntegrationTest {
 
         rate(movie, bearer(103, "USUARIO"), "{\"puntuacion\":0}")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errores.puntuacion").isNotEmpty());
+                .andExpect(jsonPath("$.errors", hasItem(startsWith("puntuacion: "))));
         rate(movie, bearer(103, "USUARIO"), "{\"puntuacion\":6}").andExpect(status().isBadRequest());
         rate(movie, bearer(103, "USUARIO"), "{\"comentario\":\"no note\"}")
                 .andExpect(status().isBadRequest());

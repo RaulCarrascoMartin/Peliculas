@@ -1,6 +1,6 @@
 package shop.orders.internal.domain.repository;
 
-import shop.orders.internal.domain.model.Order;
+import shop.orders.internal.domain.dto.OrderDto;
 
 import java.util.Optional;
 
@@ -8,9 +8,9 @@ import java.util.Optional;
 public interface OrderRepository {
 
     /** Inserts the order and its lines and returns the order with the assigned id. */
-    Order save(Order order);
+    OrderDto save(OrderDto order);
 
-    Optional<Order> findById(Long id);
+    Optional<OrderDto> findById(Long id);
 
     /** Moves to CANCELLED only if it is still CREATED; returns {@code false} if there was nothing to cancel. */
     boolean cancelIfCreated(Long id);

@@ -1,30 +1,28 @@
 package shop.orders.internal.domain.contract;
 
-import java.math.BigDecimal;
+import shop.orders.internal.domain.dto.ReservedItemDto;
+import shop.orders.internal.domain.dto.StockItemDto;
+import shop.orders.internal.domain.exception.InsufficientStockException;
+import shop.orders.internal.domain.exception.ProductNotFoundException;
+import shop.orders.internal.domain.exception.ProductNotPurchasableException;
+
 import java.util.List;
 
 /**
  * What orders needs from the catalog: reserve and release stock. The adapter in {@code persistence} fulfils it and
- * translates the catalog's failures into the common business exceptions (404 and 409).
+ * translates the catalog's failures into the exceptions of this domain.
  */
 public interface StockReservation {
-
-    /** Quantity of a product to reserve or release. */
-    record Item(Long productId, int quantity) {
-    }
-
-    /** Reserved product with the title and unit price captured at reservation time. */
-    record Reserved(Long productId, String title, BigDecimal unitPrice, int quantity) {
-    }
 
     /**
      * Reserves all the lines or none.
      *
-     * @throws shop.shared.error.ResourceNotFoundException if a product does not exist
-     * @throws shop.shared.error.ConflictException         if a product is not purchasable or lacks stock
+     * @throws ProductNotFoundException       if a product does not exist
+     * @throws ProductNotPurchasableException if a product has no price
+     * @throws InsufficientStockException     if there are not enough units of a product
      */
-    List<Reserved> reserve(List<Item> items);
+    List<ReservedItemDto> reserve(List<StockItemDto> items);
 
     /** Returns the units to the stock. */
-    void release(List<Item> items);
+    void release(List<StockItemDto> items);
 }

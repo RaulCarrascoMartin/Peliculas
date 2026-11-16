@@ -1,13 +1,18 @@
 package shop.cart.internal.persistence.adapter;
 
-import shop.cart.internal.domain.contract.CatalogMovie;
+import jakarta.inject.Named;
 import shop.cart.internal.domain.contract.MovieCatalog;
+import shop.cart.internal.domain.dto.CatalogMovieDto;
 import shop.catalog.api.facade.CatalogFacade;
 
 import java.util.Collection;
 import java.util.List;
 
-/** Translates the cart's {@link MovieCatalog} contract to the public facade of {@code catalog}. */
+/**
+ * Translates the cart's {@link MovieCatalog} contract to the public facade of {@code catalog}. The bean is named
+ * explicitly because purchase and rating have an adapter with the same simple name.
+ */
+@Named("cartMovieCatalogAdapter")
 public class MovieCatalogAdapter implements MovieCatalog {
 
     private final CatalogFacade catalog;
@@ -17,9 +22,9 @@ public class MovieCatalogAdapter implements MovieCatalog {
     }
 
     @Override
-    public List<CatalogMovie> findByIds(Collection<Long> ids) {
+    public List<CatalogMovieDto> findByIds(Collection<Long> ids) {
         return catalog.findSummaries(ids).stream()
-                .map(m -> new CatalogMovie(m.id(), m.title(), m.price()))
+                .map(m -> new CatalogMovieDto(m.id(), m.title(), m.price()))
                 .toList();
     }
 }

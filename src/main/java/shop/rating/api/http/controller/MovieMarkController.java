@@ -1,74 +1,57 @@
 package shop.rating.api.http.controller;
 
-import shop.rating.api.http.dto.MarkedMovieResponse;
-
-import shop.shared.security.CurrentUser;
-import shop.rating.internal.application.usecase.UnmarkMovie;
-import shop.rating.internal.application.usecase.ListMarkedMovies;
-import shop.rating.internal.application.usecase.MarkMovie;
-import shop.rating.internal.domain.model.MarkType;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import shop.rating.api.http.MovieMarkHttpApi;
+import shop.rating.api.http.dto.MarkedMovieResponse;
+import shop.rating.api.http.mapper.MovieMarkWebMapper;
+import shop.rating.internal.domain.model.MarkType;
+import shop.rating.internal.domain.service.MovieMarkService;
+import shop.shared.security.CurrentUser;
 
 import java.util.List;
 
+/** HTTP entry of the favourite / watched lists: implements the {@link MovieMarkHttpApi} contract and delegates. */
 @RestController
-public class MovieMarkController {
+public class MovieMarkController implements MovieMarkHttpApi {
 
-    private final MarkMovie markMovie;
-    private final UnmarkMovie unmarkMovie;
-    private final ListMarkedMovies listMarkedMovies;
+    private final MovieMarkService movieMarkService;
+    private final MovieMarkWebMapper mapper;
     private final CurrentUser currentUser;
 
-    public MovieMarkController(MarkMovie markMovie, UnmarkMovie unmarkMovie,
-                               ListMarkedMovies listMarkedMovies,
+    public MovieMarkController(MovieMarkService movieMarkService, MovieMarkWebMapper mapper,
                                CurrentUser currentUser) {
+        this.movieMarkService = movieMarkService;
+        this.mapper = mapper;
         this.currentUser = currentUser;
-        this.markMovie = markMovie;
-        this.unmarkMovie = unmarkMovie;
-        this.listMarkedMovies = listMarkedMovies;
     }
 
-    @PutMapping("/api/peliculas/{movieId}/favorita")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void markFavorite(@PathVariable Long movieId) {
-        markMovie.execute(currentUser.id(), movieId, MarkType.FAVORITA);
+    @Override
+    public void markFavorite(Long movieId) {
+        movieMarkService.mark(mapper.toDto(currentUser.id(), movieId, MarkType.FAVORITA));
     }
 
-    @DeleteMapping("/api/peliculas/{movieId}/favorita")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void unmarkFavorite(@PathVariable Long movieId) {
-        unmarkMovie.execute(currentUser.id(), movieId, MarkType.FAVORITA);
+    @Override
+    public void unmarkFavorite(Long movieId) {
+        movieMarkService.unmark(mapper.toDto(currentUser.id(), movieId, MarkType.FAVORITA));
     }
 
-    @PutMapping("/api/peliculas/{movieId}/vista")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void markWatched(@PathVariable Long movieId) {
-        markMovie.execute(currentUser.id(), movieId, MarkType.VISTA);
+    @Override
+    public void markWatched(Long movieId) {
+        movieMarkService.mark(mapper.toDto(currentUser.id(), movieId, MarkType.VISTA));
     }
 
-    @DeleteMapping("/api/peliculas/{movieId}/vista")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void unmarkWatched(@PathVariable Long movieId) {
-        unmarkMovie.execute(currentUser.id(), movieId, MarkType.VISTA);
+    @Override
+    public void unmarkWatched(Long movieId) {
+        movieMarkService.unmark(mapper.toDto(currentUser.id(), movieId, MarkType.VISTA));
     }
 
-    @GetMapping("/api/usuarios/me/favoritas")
+    @Override
     public List<MarkedMovieResponse> listFavorites() {
-        return listMarked(MarkType.FAVORITA);
+        return mapper.toResponses(movieMarkService.listMarked(currentUser.id(), MarkType.FAVORITA));
     }
 
-    @GetMapping("/api/usuarios/me/vistas")
+    @Override
     public List<MarkedMovieResponse> listWatched() {
-        return listMarked(MarkType.VISTA);
-    }
-
-    private List<MarkedMovieResponse> listMarked(MarkType type) {
-        return listMarkedMovies.execute(currentUser.id(), type).stream().map(MarkedMovieResponse::from).toList();
+        return mapper.toResponses(movieMarkService.listMarked(currentUser.id(), MarkType.VISTA));
     }
 }
